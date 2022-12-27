@@ -127,4 +127,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-rules_engine/rules_engine/django_secret_key.txt
