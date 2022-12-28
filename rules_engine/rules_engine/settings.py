@@ -79,8 +79,12 @@ WSGI_APPLICATION = 'rules_engine.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rules',
+        'USER': 'rules',
+        'PASSWORD': os.environ['MYSQL_PASSWORD'],
+        'HOST': '127.0.0.1',
+        'PORT': '',
     }
 }
 
@@ -109,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Los_Angeles'
 
 USE_I18N = True
 
