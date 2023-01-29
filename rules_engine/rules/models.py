@@ -11,6 +11,13 @@ class Criterion(models.Model):
     name = models.CharField(max_length=30, primary_key=True)
     logic = models.TextField()
 
+    class Meta:
+        """Define non-field attributes.
+        
+        (1) Change the plural name in the admin site.
+        """
+        verbose_name_plural = "Criteria"
+    
     def __str__(self) -> str:
         return str(self.name)
 
@@ -67,13 +74,18 @@ class ActionParameters(models.Model):
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
 
     class Meta:
-        """An action cannot have duplicate parameter numbers."""
+        """Define non-field attributes.
+        
+        (1) An action cannot have duplicate parameter numbers.
+        (2) Change the plural name in the admin site.
+        """
         models.UniqueConstraint(fields=['action', 'parameter_number'],
             name='unique_parameter_number')
+        verbose_name_plural = 'Action Parameters'
 
     def __str__(self) -> str:
-        return ('Action ' + self.action + ', Parameter #'
-            + self.parameter_number + ': ' + self.parameter)
+        return ('Action ' + str(self.action) + ', Parameter #'
+            + str(self.parameter_number) + ': ' + str(self.parameter))
 
 
 class Rule(models.Model):
@@ -101,10 +113,13 @@ class RuleActions(models.Model):
     parameter_values = models.TextField()
 
     class Meta:
-        """A rule cannot have duplicate action numbers."""
+        """Define non-field attributes.
+        
+        (1) A rule cannot have duplicate action numbers.
+        """
         models.UniqueConstraint(fields=['rule', 'action_number'],
             name='unique_action_number')
 
     def __str__(self) -> str:
-        return str('Rule ' + self.rule + ', Action #' + self.action_number
-            + ': ' + self.action)
+        return ('Rule ' + str(self.rule) + ', Action #'
+            + str(self.action_number) + ': ' + str(self.action))
