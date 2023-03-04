@@ -1,0 +1,39 @@
+<script type="text/javascript">
+    function addAction() {
+        //Add a blank action form.
+        let form_count = document.getElementById("id_ruleactions_set-TOTAL_FORMS").value;
+        let last_action_number = document.getElementById("id_ruleactions_set-" + (form_count - 1) + "-action_number")
+        let last_action_name = document.getElementById("id_ruleactions_set-" + (form_count - 1) + "-action")
+        if (last_action_number.value != "" && last_action_name.value != "") {
+            let form = "{{ rule_actions_empty_form|escapejs }}".replace(/__prefix__/g, form_count);
+            let action_fieldset = document.createElement("fieldset");
+            action_fieldset.innerHTML = form;
+            document.getElementById("ruleactions_formset_additional").appendChild(action_fieldset);
+            form_count++;
+            document.getElementById("id_ruleactions_set-TOTAL_FORMS").value = form_count;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        //When a form is returned with one or more errors, loop through all of
+        //the action forms and hide the parameter form linked to a database
+        //record if there is also a parameter form not linked to a database
+        //record for that action form.
+        let form_count = document.getElementById("id_ruleactions_set-TOTAL_FORMS").value;
+        for (var form_number = 0; form_number < form_count; form_number++) {
+            let parameter_form = document.getElementById("action_parameter_" + form_number + "_ActionParameterForm");
+            if (parameter_form.children.length > 0) {
+                let action_record_id = document.getElementById("id_ruleactions_set-" + form_number + "-id").value;
+                if (action_record_id != "") {
+                    let parameter_count = document.getElementById("id_param" + action_record_id + "-TOTAL_FORMS").value;
+                    for (var i = 0; i < parameter_count; i++) {
+                        let parameter_control = document.getElementById("id_param" + action_record_id + "-" + i + "-parameter_value");
+                        let label_control = parameter_control.previousElementSibling;
+                        label_control.setAttribute("class", "d-none");
+                        parameter_control.setAttribute("class", "d-none");
+                    }
+                }
+            }
+        }
+    }, false);
+</script>

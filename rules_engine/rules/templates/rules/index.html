@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>List of Rules</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1>Rules Manager</h1>
+                    {% if rule_list %}
+                        <ul>
+                            {% for rule in rule_list %}
+                                <li><a href="{% url 'rules:edit' rule.id %}">{{ rule.name }}</a> (<a href="{% url 'rules:delete' rule.id %}">Delete</a>)</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>There are no rules to manage.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p><a href="{% url 'rules:add' %}">Add a rule</a></p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
