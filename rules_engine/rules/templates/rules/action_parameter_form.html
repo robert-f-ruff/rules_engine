@@ -1,0 +1,18 @@
+{% for hidden in parameter_form.hidden_fields %}
+{{ hidden }}
+{% endfor %}
+{% if parameter_form.non_field_errors %}
+<div class="alert alert-danger">
+    {{ parameter_form.non_field_errors }}
+</div>
+{% endif %}
+{% for field in parameter_form.visible_fields %}
+<label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+{% if field.errors %}
+<div class="alert alert-danger">
+    {{ field.errors }}
+</div>
+{% endif %}
+{{ field|add_class:'form-control'}}
+<p class="form-text">{{ field.help_text|safe }}</p>
+{% endfor %}

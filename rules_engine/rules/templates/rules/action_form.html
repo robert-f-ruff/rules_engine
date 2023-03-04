@@ -1,0 +1,34 @@
+{% for hidden in action_form.hidden_fields %}
+{{ hidden }}
+{% endfor %}
+{% if action_form.non_field_errors %}
+<div class="alert alert-danger">
+    {{ action_form.non_field_errors }}
+</div>
+{% endif %}
+<div>
+    <label for="{{ action_form.action_number.id_for_label }}" class="form-label">{{ action_form.action_number.label }}</label>
+    {% if action_form.action_number.errors %}
+    <div class="alert alert-danger">
+        {{ action_form.action_number.errors }}
+    </div>
+    {% endif %}
+    {{ action_form.action_number|add_class:'form-control'}}
+    <p class="form-text">{{ action_form.action_number.help_text|safe }}</p>
+</div>
+<div>
+    <label for="{{ action_form.action.id_for_label }}" class="form-label">{{ action_form.action.label }}</label>
+    {% if action_form.action.errors %}
+    <div class="alert alert-danger">
+        {{ action_form.action.errors }}
+    </div>
+    {% endif %}
+    {{ action_form.action }}
+    <p class="form-text">{{ action_form.action.help_text|safe }}</p>
+</div>
+<div class="form-check">
+    {{ action_form.DELETE|add_class:'form-check-input' }}
+    <label for="" class="form-check-label">Delete</label>
+</div>
+<div id="action_parameter___prefix___ActionParameterForm">
+</div>
