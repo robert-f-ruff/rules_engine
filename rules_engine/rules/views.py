@@ -1,4 +1,5 @@
 """Define the views used by the rules engine."""
+from typing import Any
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
@@ -36,18 +37,19 @@ class RuleView(View):
     """ This view allows the user to edit or create a rule. It manages the
         rule form.
     """
-    template_name = ''
-    rule = None
-    rule_form = None
-    rule_actions_formset = None
-    parameter_formsets = []
-    parameter_forms = []
-    forms_to_save = {}
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.template_name = ''
+        self.rule = None
+        self.rule_form = None
+        self.rule_actions_formset = None
+        self.parameter_formsets = []
+        self.parameter_forms = []
+        self.forms_to_save = {'form_sets': [], 'forms': []}
 
     def get(self, request, *args, rule_id=0, **kwargs):
         """ This function responds to the HTTP GET command.
         """
-        self.clear_sub_forms()
         if rule_id > 0:
             self.rule = get_object_or_404(Rule, pk=rule_id)
         self.set_template_name()
@@ -66,7 +68,6 @@ class RuleView(View):
     def post(self, request, *args, rule_id=0, **kwargs):
         """ This function responds to the HTTP POST command.
         """
-        self.clear_sub_forms()
         all_pass = True
         if rule_id > 0:
             self.rule = get_object_or_404(Rule, pk=rule_id)
@@ -127,12 +128,13 @@ class RuleView(View):
         context = {
             'rule_form': self.rule_form,
             'rule_actions_formset': self.rule_actions_formset,
-            'rule_actions_empty_form': render_to_string('rules/action_form.html',
-                                        {'action_form': self.rule_actions_formset.empty_form}),
-            'rule_actions_parameter_forms': zip(self.rule_actions_formset.forms,
+        }
+        if self.rule_actions_formset is not None:
+            context['rule_actions_empty_form'] = render_to_string('rules/action_form.html',
+                                        {'action_form': self.rule_actions_formset.empty_form})
+            context['rule_actions_parameter_forms'] = zip(self.rule_actions_formset.forms,
                                         rule_action_parameters_items,
                                         strict=True)
-        }
         if self.rule is not None:
             context['rule_id'] = self.rule.pk
         return context
@@ -145,14 +147,6 @@ class RuleView(View):
             self.template_name = 'rules/rule_edit.html'
         else:
             self.template_name = 'rules/rule_create.html'
-
-    def clear_sub_forms(self):
-        """ This function will reset the actions and parameters members.
-        """
-        self.rule_actions_formset = None
-        self.parameter_formsets = []
-        self.parameter_forms = []
-        self.forms_to_save = {'form_sets': [], 'forms': []}
 
     def save_new_parameters(self, clean_data, rule_action, form_prefix):
         """ This function will save a new rule action parameter record.
