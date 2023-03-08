@@ -88,8 +88,6 @@ class ActionParameterForm(Form):
     This form allows the user to set the parameters for an associated
     action.
     """
-    form_prefix = ''
-
     def __init__(self, *args, **kwargs) -> None:
         """ This function executes when the form is created.
 
