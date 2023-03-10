@@ -1,37 +1,13 @@
 """Define tests for the views."""
 from django.test import TestCase
 from django.urls import reverse
-from rules.models import Rule, Action, Parameter, RuleActions, RuleActionParameters
+from rules.models import Rule, RuleActions, RuleActionParameters
 
 
 class ParametersViewTests(TestCase):
     """ Test the parameters() view function.
     """
-    @classmethod
-    def setUpTestData(cls):
-        """ Create the test data.
-        """
-        cls.send_parameter = Parameter.objects.create(name='Send email to', data_type=Parameter.EMAIL,
-                                                      help_text='Enter the email address that the message is addressed to.')
-        cls.copy_parameter = Parameter.objects.create(name='Copy email to', data_type=Parameter.EMAIL,
-                                                      help_text='Enter the email address that a copy of the mesage is addressed to.')
-        cls.send_email_action = Action.objects.create(name='Send Email', function='email()')
-        cls.send_email_action.parameters.add(cls.send_parameter, through_defaults={'parameter_number': 1})
-        cls.send_email_action.parameters.add(cls.copy_parameter, through_defaults={'parameter_number': 2})
-        cls.send_email_action.save()
-        cls.text_parameter = Parameter.objects.create(name='Send text to', data_type=Parameter.TELEPHONE,
-                                                      help_text='Enter the mobile phone number to send the text message to.<br>Use the format (NNN) NNN-NNNN.')
-        cls.send_text_action = Action.objects.create(name='Send Text Message', function='text()')
-        cls.send_text_action.parameters.add(cls.text_parameter, through_defaults={'parameter_number': 1})
-        cls.rule_one = Rule.objects.create(name='Test Rule 1')
-        cls.rule_actions_one = RuleActions.objects.create(rule=cls.rule_one, action_number=1,
-                                                          action=cls.send_email_action)
-        cls.rule_action_parameter_one = RuleActionParameters.objects.create(rule_action=cls.rule_actions_one,
-                                                                        parameter=cls.send_parameter,
-                                                                        parameter_value='george.jetson@spacely.zz')
-        cls.rule_action_parameter_two = RuleActionParameters.objects.create(rule_action=cls.rule_actions_one,
-                                                                            parameter=cls.copy_parameter,
-                                                                            parameter_value='cosmo.spacely@spacely.zz')
+    fixtures = ['view_tests.json']
 
     def test_invalid_http_method(self):
         """ The parameters view only responds to a certain type of HTTP
@@ -55,7 +31,7 @@ class ParametersViewTests(TestCase):
         """
         url = reverse('rules:action_parameters', kwargs={'action_name': 'Send Email'})
         response = self.client.get(url + '?ruleaction_set-id=0&ruleaction-id=')
-        self.assertEqual(response.headers['Content-Type'], 'application/json',
+        self.assertEqual(response.headers['Content-Type'], 'application/json', # type: ignore
                          'return data in JSON format')
 
     def test_non_blank_parameter_form_returned(self):
@@ -63,8 +39,7 @@ class ParametersViewTests(TestCase):
             matching RuleAction record exists.
         """
         url = reverse('rules:action_parameters', kwargs={'action_name': 'Send Text Message'})
-        response = self.client.get(url + '?ruleaction_set-id=0&ruleaction-id='
-                                   + str(self.rule_actions_one.pk))
+        response = self.client.get(url + '?ruleaction_set-id=0&ruleaction-id=2')
         self.assertIsNot(response.json()['parameter_form'], '', 'view should return a form')
 
     def test_blank_parameter_form_returned(self):
@@ -72,8 +47,7 @@ class ParametersViewTests(TestCase):
             matching RuleAction record does not exist.
         """
         url = reverse('rules:action_parameters', kwargs={'action_name': 'Send Email'})
-        response = self.client.get(url + '?ruleaction_set-id=0&ruleaction-id='
-                                   + str(self.rule_actions_one.pk))
+        response = self.client.get(url + '?ruleaction_set-id=0&ruleaction-id=2')
         self.assertEqual(response.json()['parameter_form'], '', 'view should not return a form')
 
 
@@ -94,42 +68,18 @@ class IndexViewTests(TestCase):
         rule_one = Rule.objects.create(name='Test Rule 1')
         response = self.client.get(reverse('rules:index'))
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(qs=response.context['rule_list'], values=[rule_one])
+        self.assertQuerysetEqual(qs=response.context['rule_list'], values=[rule_one]) # type: ignore
 
 
 class RuleDeleteViewTests(TestCase):
     """ Test the RuleDeleteView class.
     """
-    @classmethod
-    def setUpTestData(cls):
-        """ Create the test data.
-        """
-        cls.send_parameter = Parameter.objects.create(name='Send email to', data_type=Parameter.EMAIL,
-                                                      help_text='Enter the email address that the message is addressed to.')
-        cls.copy_parameter = Parameter.objects.create(name='Copy email to', data_type=Parameter.EMAIL,
-                                                      help_text='Enter the email address that a copy of the mesage is addressed to.')
-        cls.send_email_action = Action.objects.create(name='Send Email', function='email()')
-        cls.send_email_action.parameters.add(cls.send_parameter, through_defaults={'parameter_number': 1})
-        cls.send_email_action.parameters.add(cls.copy_parameter, through_defaults={'parameter_number': 2})
-        cls.send_email_action.save()
-        cls.text_parameter = Parameter.objects.create(name='Send text to', data_type=Parameter.TELEPHONE,
-                                                      help_text='Enter the mobile phone number to send the text message to.<br>Use the format (NNN) NNN-NNNN.')
-        cls.send_text_action = Action.objects.create(name='Send Text Message', function='text()')
-        cls.send_text_action.parameters.add(cls.text_parameter, through_defaults={'parameter_number': 1})
-        cls.rule_one = Rule.objects.create(name='Test Rule 1')
-        cls.rule_actions_one = RuleActions.objects.create(rule=cls.rule_one, action_number=1,
-                                                          action=cls.send_email_action)
-        cls.rule_action_parameter_one = RuleActionParameters.objects.create(rule_action=cls.rule_actions_one,
-                                                                        parameter=cls.send_parameter,
-                                                                        parameter_value='george.jetson@spacely.zz')
-        cls.rule_action_parameter_two = RuleActionParameters.objects.create(rule_action=cls.rule_actions_one,
-                                                                            parameter=cls.copy_parameter,
-                                                                            parameter_value='cosmo.spacely@spacely.zz')
-    
+    fixtures = ['view_tests.json']
+
     def test_confirm_delete(self):
         """ Verify the confirm page is returned.
         """
-        url = reverse('rules:delete', kwargs={'pk': self.rule_one.pk})
+        url = reverse('rules:delete', kwargs={'pk': 2})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Are you sure you want to delete ')
@@ -137,7 +87,7 @@ class RuleDeleteViewTests(TestCase):
     def test_successful_delete(self):
         """ Delete the specified rule.
         """
-        url = reverse('rules:delete', kwargs={'pk': self.rule_one.pk})
+        url = reverse('rules:delete', kwargs={'pk': 2})
         response = self.client.post(url)
         self.assertRedirects(response, reverse('rules:index'))
         self.assertEqual(Rule.objects.count(), 0)
@@ -147,31 +97,7 @@ class RuleDeleteViewTests(TestCase):
 class RuleViewTests(TestCase):
     """ Test the RuleView class.
     """
-    @classmethod
-    def setUpTestData(cls):
-        """ Create the test data.
-        """
-        cls.send_parameter = Parameter.objects.create(name='Send email to', data_type=Parameter.EMAIL,
-                                                      help_text='Enter the email address that the message is addressed to.')
-        cls.copy_parameter = Parameter.objects.create(name='Copy email to', data_type=Parameter.EMAIL,
-                                                      help_text='Enter the email address that a copy of the mesage is addressed to.')
-        cls.send_email_action = Action.objects.create(name='Send Email', function='email()')
-        cls.send_email_action.parameters.add(cls.send_parameter, through_defaults={'parameter_number': 1})
-        cls.send_email_action.parameters.add(cls.copy_parameter, through_defaults={'parameter_number': 2})
-        cls.send_email_action.save()
-        cls.text_parameter = Parameter.objects.create(name='Send text to', data_type=Parameter.TELEPHONE,
-                                                      help_text='Enter the mobile phone number to send the text message to.<br>Use the format (NNN) NNN-NNNN.')
-        cls.send_text_action = Action.objects.create(name='Send Text Message', function='text()')
-        cls.send_text_action.parameters.add(cls.text_parameter, through_defaults={'parameter_number': 1})
-        cls.rule_one = Rule.objects.create(name='Test Rule 1')
-        cls.rule_actions_one = RuleActions.objects.create(rule=cls.rule_one, action_number=1,
-                                                          action=cls.send_email_action)
-        cls.rule_action_parameter_one = RuleActionParameters.objects.create(rule_action=cls.rule_actions_one,
-                                                                        parameter=cls.send_parameter,
-                                                                        parameter_value='george.jetson@spacely.zz')
-        cls.rule_action_parameter_two = RuleActionParameters.objects.create(rule_action=cls.rule_actions_one,
-                                                                            parameter=cls.copy_parameter,
-                                                                            parameter_value='cosmo.spacely@spacely.zz')
+    fixtures = ['view_tests.json']
 
     def test_add_form(self):
         """ Present the user with an empty rule form.
@@ -184,7 +110,7 @@ class RuleViewTests(TestCase):
     def test_edit_form(self):
         """ Present the user with a populated rule form.
         """
-        url = reverse('rules:edit', kwargs={'rule_id': self.rule_one.pk})
+        url = reverse('rules:edit', kwargs={'rule_id': 2})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'rules/rule_edit.html')
