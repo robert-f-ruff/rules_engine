@@ -9,7 +9,7 @@
 {% for field in parameter_form.visible_fields %}
 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
 {% if field.errors %}
-<div class="alert alert-danger">
+<div id="{{ field.id_for_label }}_errors" class="alert alert-danger">
     {{ field.errors }}
 </div>
 {% endif %}
