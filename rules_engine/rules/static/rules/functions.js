@@ -33,21 +33,35 @@ async function parseParameters(location, action_number) {
         for (var i = 0; i < parameter_count; i++) {
             let parameter_control = document.getElementById("id_param" + action_record_id + "-" + i + "-parameter_value");
             let label_control = parameter_control.previousElementSibling;
-            let delete_control = document.getElementById("id_param" + action_record_id + "-" + i + "-DELETE")
+            let help_text = parameter_control.nextElementSibling;
+            let delete_control = document.getElementById("id_param" + action_record_id + "-" + i + "-DELETE");
             if (form_code.parameter_form != "") {
-                label_control.setAttribute("class", "d-none");
-                parameter_control.setAttribute("class", "d-none");
+                hideControl(label_control);
+                hideControl(parameter_control);
+                hideControl(help_text);
                 delete_control.value = "True"
             }
             else {
-                label_control.setAttribute("class", "");
-                parameter_control.setAttribute("class", "");
+                showControl(label_control);
+                showControl(parameter_control);
+                showControl(help_text);
                 delete_control.value = ""
             }
         }
         document.getElementById("server_message_" + action_number).remove();
     }
     parameter_area.innerHTML = form_code.parameter_form;
+}
+
+function hideControl(element) {
+    let element_class = element.getAttribute("class");
+    element_class = element_class + " d-none";
+    element.setAttribute("class", element_class);
+}
+
+function showControl(element) {
+    let element_class = element.getAttribute("class").replace(/ d[-]none/, "");
+    element.setAttribute("class", element_class)
 }
 
 function validateForm() {
