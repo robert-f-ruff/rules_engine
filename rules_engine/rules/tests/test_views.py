@@ -99,6 +99,26 @@ class RuleViewTests(TestCase):
     """
     fixtures = ['view_tests.json']
 
+    def setUp(self) -> None:
+        super().setUp()
+        self._post_data = {
+            'name': 'Test Rule 4',
+            'criteria': 'Is Pleasant',
+            'ruleactions_set-TOTAL_FORMS': '1',
+            'ruleactions_set-INITIAL_FORMS': '0',
+            'ruleactions_set-MIN_NUM_FORMS': '0',
+            'ruleactions_set-MAX_NUM_FORMS': '1000',
+            'ruleactions_set-0-id': '',
+            'ruleactions_set-0-rule': '',
+            'ruleactions_set-0-action_number': '1',
+            'ruleactions_set-0-action': 'Send Email',
+            'new_parameter_form-0-parameter_name-1': 'Send email to',
+            'new_parameter_form-0-parameter_name-2': 'Copy email to',
+            'new_parameter_form-0-parameter_count': '2',
+            'new_parameter_form-0-parameter_value-1': 'george.jetson@spacely.zz',
+            'new_parameter_form-0-parameter_value-2': ''
+        }
+
     def test_add_form(self):
         """ Present the user with an empty rule form.
         """
@@ -122,3 +142,29 @@ class RuleViewTests(TestCase):
         url = reverse('rules:edit', kwargs={'rule_id': 50})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_rule_form_error(self):
+        """ Return the rule form with an error.
+        """
+        self._post_data['name'] = 'Test Rule Test Rule Really Long Test Rule'
+        url = reverse('rules:add')
+        response = self.client.post(url, self._post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response,
+                        '<div id="id_name_errors" class="alert alert-danger">')
+        self.assertContains(response,
+                            '<li>Ensure this value has at most 30 characters '
+                            + '(it has 41).</li>')
+
+    def test_action_form_error(self):
+        """ Return the rule form with an error.
+        """
+        self._post_data['ruleactions_set-0-action_number'] = ''
+        url = reverse('rules:add')
+        response = self.client.post(url, self._post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response,
+                        '<div id="id_ruleactions_set-0-action_number_errors" '
+                        + 'class="alert alert-danger">')
+        self.assertContains(response,
+                            '<li>This field is required.</li>')
