@@ -30,9 +30,8 @@ class Criterion(models.Model):
 class Parameter(models.Model):
     """Implement the Parameter model.
 
-    A parameter has a data type and a function that is called to
-    validate its value. This model is used when adding an action to a
-    rule.
+    A parameter has a data type, a flag to denote whether it is required,
+    and help text. This model is used when adding an action to a rule.
     """
     name = models.CharField(max_length=30, primary_key=True)
     BOOLEAN = "BO"
@@ -153,9 +152,14 @@ class Rule(models.Model):
     applicable, the actions determine what the engine will do.
     """
     name = models.CharField(max_length=30,
-                            help_text='Descriptive text used to identify this rule, from one to thirty characters in length.')
+                            help_text='Descriptive text used to identify this '
+                                + 'rule, from one to thirty characters in '
+                                + 'length.')
     criteria = models.ManyToManyField(Criterion,
-                                      help_text='Select one or more items.<br>If all of the selected items evaluate as true, the rule is considered applicable and the actions listed below are executed.')
+                            help_text='Select one or more items.<br> If all '
+                                + 'of the selected items evaluate as true, '
+                                + 'the rule is considered applicable and the '
+                                + 'actions listed below are executed.')
     actions = models.ManyToManyField(Action, through='RuleActions')
 
     def __str__(self) -> str:
@@ -170,9 +174,13 @@ class RuleActions(models.Model):
     This model associates actions and their parameter values to a rule.
     """
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE)
-    action_number = models.PositiveSmallIntegerField(help_text='Enter a whole number greater than zero.<br>Actions are executed in numerical order, from lowest to highest.')
+    action_number = models.PositiveSmallIntegerField(help_text='Enter a whole '
+                                    + 'number greater than zero.<br>Actions '
+                                    + 'are executed in numerical order, from '
+                                    + 'lowest to highest.')
     action = models.ForeignKey(Action, on_delete=models.CASCADE,
-                               help_text='Select an action to take when all the criteria above evaluate as true.')
+                               help_text='Select an action to take when all '
+                                + 'the criteria above evaluate as true.')
     parameters = models.ManyToManyField(Parameter,
                                         through='RuleActionParameters')
 
