@@ -3,7 +3,7 @@ from django.forms import (Form, ModelForm, BaseInlineFormSet,
                           CheckboxSelectMultiple, TextInput, HiddenInput,
                           inlineformset_factory, Select, IntegerField,
                           CharField)
-from .models import Rule, RuleActions, RuleActionParameters
+from .models import Parameter, Rule, RuleActions, RuleActionParameters
 
 
 class RuleForm(ModelForm):
@@ -98,20 +98,38 @@ class ActionParameterForm(Form):
         ruleaction_set_id = kwargs.pop('ruleaction_set_id', 0)
         super().__init__(*args, **kwargs)
         count = 0
-        self.form_prefix = 'new_parameter_form-' + str(ruleaction_set_id) + '-'
+        self._prefix = self.get_prefix(ruleaction_set_id)
         for field in create_fields:
-            field_name = (self.form_prefix + 'parameter_value-'
+            field_name = (self._prefix + 'parameter_value-'
                           + str(field['parameter_number']))
             self.fields[field_name] = field['parameter'].form_control
-            pk_field_name = (self.form_prefix + 'parameter_name-'
+            pk_field_name = (self._prefix + 'parameter_name-'
                              + str(field['parameter_number']))
             self.fields[pk_field_name] = CharField(widget=HiddenInput)
             self.fields[pk_field_name].initial = field['parameter'].name
             count += 1
-        self.fields[self.form_prefix + 'parameter_count'] = IntegerField(widget=HiddenInput)
-        self.fields[self.form_prefix + 'parameter_count'].initial = count
+        self._parameter_count = self._prefix + 'parameter_count'
+        self.fields[self._parameter_count] = IntegerField(widget=HiddenInput)
+        self.fields[self._parameter_count].initial = count
 
-    def get_prefix(self) -> str:
+    @classmethod
+    def get_prefix(cls, ruleaction_set_id: int) -> str:
         """ This function will return the prefix that is prepended to every field.
         """
-        return self.form_prefix
+        return 'new_parameter_form-' + str(ruleaction_set_id) + '-'
+
+    def save(self, rule_action: RuleActions):
+        """ This function will save the data stored in this form.
+        """
+        for number in range(1, self.cleaned_data[self._parameter_count] + 1):
+            name = self.cleaned_data[self._prefix + 'parameter_name-'
+                                     + str(number)]
+            parameter = Parameter.objects.get(pk=name)
+            parameter_value = self.cleaned_data[self._prefix
+                                            + 'parameter_value-' + str(number)]
+            rule_action_parameter = RuleActionParameters(
+                rule_action=rule_action,
+                parameter=parameter,
+                parameter_value=parameter_value
+            )
+            rule_action_parameter.save()

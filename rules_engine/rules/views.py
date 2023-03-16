@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views import generic, View
-from .models import ActionParameters, Rule, RuleActions, RuleActionParameters, Parameter
+from .models import ActionParameters, Rule, RuleActions
 from .forms import RuleForm, RuleActionsFormSet, ActionParametersFormSet, ActionParameterForm
 
 
@@ -97,8 +97,8 @@ class RuleView(View):
                 self.forms_to_save['form_sets'].append(self.parameter_formsets.index(formset))
             else:
                 self.parameter_formsets.append(None)
-            if int(request.POST.get('new_parameter_form-' + str(form_id)
-                                    + '-parameter_count', 0)) > 0:
+            if int(request.POST.get(ActionParameterForm.get_prefix(form_id)
+                                    + 'parameter_count', 0)) > 0:
                 parameter_form = get_action_parameter_form(
                     action_name=rule_action_form['action'].value(),
                     ruleaction_set_id=str(form_id),
@@ -118,9 +118,7 @@ class RuleView(View):
             for index in self.forms_to_save['forms']:
                 parameter_form = self.parameter_forms[index]
                 rule_action_form = self.rule_actions_formset[index]
-                self.save_new_parameters(parameter_form.cleaned_data,
-                                         rule_action_form.instance,
-                                         parameter_form.form_prefix)
+                parameter_form.save(rule_action_form.instance)
             return redirect('rules:index')
         return render(request, self.template_name, self.get_context_data())
 
@@ -156,21 +154,6 @@ class RuleView(View):
             self.template_name = 'rules/rule_edit.html'
         else:
             self.template_name = 'rules/rule_create.html'
-
-    def save_new_parameters(self, clean_data, rule_action, form_prefix):
-        """ This function will save a new rule action parameter record.
-        """
-        parameter_count = int(clean_data[form_prefix + 'parameter_count'])
-        for parameter_number in range(1, parameter_count + 1):
-            parameter = Parameter.objects.get(
-                pk=clean_data[form_prefix + 'parameter_name-' + str(parameter_number)])
-            parameter_value = (clean_data[form_prefix + 'parameter_value-'
-                               + str(parameter_number)])
-            rule_action_parameter = RuleActionParameters(
-                rule_action=rule_action,
-                parameter=parameter,
-                parameter_value=parameter_value)
-            rule_action_parameter.save()
 
 def parameters(request, action_name):
     """ This function will return a JSON object containing the parameters

@@ -408,6 +408,7 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         rule_actions = RuleActions.objects.filter(rule=1)
         self.assertEqual(rule_actions[0].action.name, 'Send Text Message')
         parameters = RuleActionParameters.objects.filter(rule_action=rule_actions[0])
+        self.assertEqual(parameters.count(), 1)
         self.assertEqual(parameters[0].parameter_value, '(444) 877-1212')
 
     def test_edit_rule_parameter_valid(self):
@@ -510,6 +511,7 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         self.assertEqual(rule_actions[1].action_number, 2)
         self.assertEqual(rule_actions[1].action.name, 'Send Text Message')
         parameters = RuleActionParameters.objects.filter(rule_action=rule_actions[1])
+        self.assertEqual(parameters.count(), 1)
         self.assertEqual(parameters[0].parameter_value, '(333) 999-1212')
 
     def test_action_number_missing_sequence_first_delete(self):
