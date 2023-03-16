@@ -87,7 +87,7 @@
                             {{ hidden }}
                             {% endfor %}
                             {% if parameter_form.non_field_errors %}
-                            <div id="non_field_errors" class="alert alert-danger">
+                            <div id="{{ parameter_form.id.auto_id|get_formset_name }}_errors" class="alert alert-danger">
                                 {{ parameter_form.non_field_errors }}
                             </div>
                             {% endif %}

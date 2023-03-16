@@ -29,8 +29,10 @@
                     for (var i = 0; i < parameter_count; i++) {
                         let parameter_control = document.getElementById("id_param" + action_record_id + "-" + i + "-parameter_value");
                         let label_control = parameter_control.previousElementSibling;
-                        label_control.setAttribute("class", "d-none");
-                        parameter_control.setAttribute("class", "d-none");
+                        let help_text = parameter_control.nextElementSibling;
+                        hideControl(label_control);
+                        hideControl(parameter_control);
+                        hideControl(help_text);
                     }
                 }
             }

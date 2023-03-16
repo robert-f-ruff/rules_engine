@@ -1,6 +1,6 @@
 """Define the views used by the rules engine."""
 from typing import Any
-from django.http import HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponseNotAllowed, JsonResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -37,6 +37,8 @@ class RuleView(View):
     """ This view allows the user to edit or create a rule. It manages the
         rule form.
     """
+    ACT_DELETE_PARAMETER_CHANGE = ('Cannot change parameter and delete the '
+        + 'associated action at the same time.')
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.template_name = ''
@@ -47,7 +49,7 @@ class RuleView(View):
         self.parameter_forms = []
         self.forms_to_save = {'form_sets': [], 'forms': []}
 
-    def get(self, request, *args, rule_id=0, **kwargs):
+    def get(self, request: HttpRequest, *args, rule_id=0, **kwargs):
         """ This function responds to the HTTP GET command.
         """
         if rule_id > 0:
@@ -65,7 +67,7 @@ class RuleView(View):
             self.parameter_forms.append(None)
         return render(request, self.template_name, self.get_context_data())
 
-    def post(self, request, *args, rule_id=0, **kwargs):
+    def post(self, request: HttpRequest, *args, rule_id=0, **kwargs):
         """ This function responds to the HTTP POST command.
         """
         all_pass = True
@@ -75,6 +77,8 @@ class RuleView(View):
         self.rule_form = RuleForm(data=request.POST, instance=self.rule)
         self.rule_actions_formset = RuleActionsFormSet(data=request.POST,
                                                        instance=self.rule_form.instance)
+        if not self.rule_form.is_valid() or not self.rule_actions_formset.is_valid():
+            all_pass = False
         ruleactions_form_count = int(request.POST.get('ruleactions_set-TOTAL_FORMS','0'))
         for form_id in range(0, ruleactions_form_count):
             rule_action_form = self.rule_actions_formset[form_id]
@@ -84,6 +88,11 @@ class RuleView(View):
                             prefix='param' + str(rule_action_form.instance.pk))
                 if not formset.is_valid():
                     all_pass = False
+                elif rule_action_form.cleaned_data.get('DELETE'):
+                    for form in formset:
+                        if form.has_changed():
+                            form.add_error(None, self.ACT_DELETE_PARAMETER_CHANGE)
+                            all_pass = False
                 self.parameter_formsets.append(formset)
                 self.forms_to_save['form_sets'].append(self.parameter_formsets.index(formset))
             else:
@@ -101,7 +110,7 @@ class RuleView(View):
                 self.forms_to_save['forms'].append(self.parameter_forms.index(parameter_form))
             else:
                 self.parameter_forms.append(None)
-        if self.rule_form.is_valid() and self.rule_actions_formset.is_valid() and all_pass:
+        if all_pass:
             self.rule_form.save()
             self.rule_actions_formset.save()
             for index in self.forms_to_save['form_sets']:

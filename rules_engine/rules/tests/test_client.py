@@ -68,23 +68,25 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         self.assertTrue(rule_editor.check_criterion('Is Pleasant'),
                         'checking Is Pleasant criterion')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('1')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
-        if parameter_set is not None:
-            first_parameter = parameter_set.get_parameter_element(0)
-            if first_parameter is None:
-                self.fail('No first parameter')
-            first_parameter.type_parameter('george.jetson@spacely.zz')
-            rule_editor.click_submit_button()
-            try:
-                index_page = IndexPage(page_driver=self.selenium)
-                self.assertEqual(index_page.get_rule(0), 'Test Rule 1',
-                                'new rule appears in list of rules')
-            except WrongPageError as error:
-                self.fail('Wrong page address: ' + str(error))
-        else:
+        if parameter_set is None:
             self.fail('No visible parameter component')
+        first_parameter = parameter_set.get_parameter_element(0)
+        if first_parameter is None:
+            self.fail('No first parameter')
+        first_parameter.type_parameter('george.jetson@spacely.zz')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            self.assertEqual(index_page.get_rule(0), 'Test Rule 1',
+                            'new rule appears in list of rules')
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
 
     def test_invalid_text_number(self):
         """ Verify the rule form is returned with an error on the
@@ -100,6 +102,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         rule_editor.type_name('Test Rule 1')
         rule_editor.check_criterion('Is Pleasant')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('1')
         action_one.select_action('Send Text Message')
         parameter_set = action_one.get_visible_parameter_component()
@@ -109,12 +113,16 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         if first_parameter is None:
             self.fail('No first parameter')
         first_parameter.type_parameter('555-444-1212')
-        rule_editor.click_submit_button()
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
         try:
             rule_editor = RuleFormPage(page_driver=self.selenium)
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
-        parameter_set = rule_editor.get_action_component(0).get_visible_parameter_component()
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
             self.fail('No visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
@@ -153,6 +161,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         rule_editor.type_name('Test Rule 1')
         rule_editor.check_criterion('Is Pleasant')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('1')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
@@ -179,6 +189,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         rule_editor.type_name('Test Rule 1')
         rule_editor.check_criterion('Is Pleasant')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('2')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
@@ -205,6 +217,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         rule_editor.type_name('Test Rule 1')
         rule_editor.check_criterion('Is Pleasant')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('1')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
@@ -217,6 +231,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_added = rule_editor.click_add_action_button()
         self.assertTrue(action_added, 'Action added to page')
         action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
         action_two.type_action_number('3')
         action_two.select_action('Send Text Message')
         parameter_set = action_two.get_visible_parameter_component()
@@ -244,6 +260,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         rule_editor.type_name('Test Rule 1')
         rule_editor.check_criterion('Is Pleasant')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('1')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
@@ -256,6 +274,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_added = rule_editor.click_add_action_button()
         self.assertTrue(action_added, 'First action added to page')
         action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
         action_two.type_action_number('3')
         action_two.select_action('Send Text Message')
         parameter_set = action_two.get_visible_parameter_component()
@@ -268,6 +288,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_added = rule_editor.click_add_action_button()
         self.assertTrue(action_added, 'Second action added to page')
         action_three = rule_editor.get_action_component(2)
+        if action_three is None:
+            self.fail('Action component 2 does not exist')
         action_three.type_action_number('2')
         action_three.select_action('Send Email')
         parameter_set = action_three.get_visible_parameter_component()
@@ -293,6 +315,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
             self.fail('Wrong page address: ' + str(error))
         rule_editor.type_name('Test Rule 1')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.type_action_number('1')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
@@ -340,6 +364,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.select_action('Send Text Message')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
@@ -353,6 +379,37 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         self.assertEqual(parameter_set.get_component_type,
                         ParameterComponent.EXISTING_PARAMETER_FORM)
 
+    def test_change_action_save(self):
+        """ Verify that a rule is updated when an action is changed."""
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_rule(0)
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        action_one.select_action('Send Text Message')
+        parameter_set = action_one.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('No visible parameter component')
+        parameter_one= parameter_set.get_parameter_element(0)
+        if parameter_one is None:
+            self.fail('No first parameter')
+        parameter_one.type_parameter('(444) 877-1212')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message, 'unexpected alert generated')
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_actions = RuleActions.objects.filter(rule=1)
+        self.assertEqual(rule_actions[0].action.name, 'Send Text Message')
+        parameters = RuleActionParameters.objects.filter(rule_action=rule_actions[0])
+        self.assertEqual(parameters[0].parameter_value, '(444) 877-1212')
+
     def test_edit_rule_parameter_valid(self):
         """ Verify editing of a parameter works as expected.
         """
@@ -364,6 +421,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
             self.fail('No visible parameter component')
@@ -371,7 +430,12 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         if parameter is None:
             self.fail('No second parameter')
         parameter.type_parameter('rosie@home.sky')
-        rule_editor.click_submit_button()
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
         parameter_record = RuleActionParameters.objects.get(pk=2)
         self.assertEqual(parameter_record.parameter_value, 'rosie@home.sky',
                          'updating Copy To parameter value')
@@ -387,6 +451,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
             self.fail('No visible parameter component')
@@ -394,12 +460,16 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         if parameter is None:
             self.fail('No second parameter')
         parameter.type_parameter('555-444-1212')
-        rule_editor.click_submit_button()
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
         try:
             rule_editor = RuleFormPage(page_driver=self.selenium)
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
-        parameter_set = rule_editor.get_action_component(0).get_visible_parameter_component()
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
             self.fail('No visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
@@ -418,6 +488,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
         action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
         action_two.type_action_number('2')
         action_two.select_action('Send Text Message')
         parameter_set = action_two.get_visible_parameter_component()
@@ -427,7 +499,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         if first_parameter is None:
             self.fail('No first parameter')
         first_parameter.type_parameter('(333) 999-1212')
-        rule_editor.click_submit_button()
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
         try:
             index_page = IndexPage(page_driver=self.selenium)
         except WrongPageError as error:
@@ -451,6 +524,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
         action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
         action_two.type_action_number('2')
         action_two.select_action('Send Text Message')
         parameter_set = action_two.get_visible_parameter_component()
@@ -461,6 +536,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('No first parameter')
         first_parameter.type_parameter('(333) 999-1212')
         action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
         action_one.check_action_delete()
         message = rule_editor.click_submit_button()
         self.assertEqual(message, 'Execution sequence #2 should be 1 not 2')
@@ -477,6 +554,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
         action_three = rule_editor.get_action_component(2)
+        if action_three is None:
+            self.fail('Action component 2 does not exist')
         action_three.type_action_number('3')
         action_three.select_action('Send Text Message')
         parameter_set = action_three.get_visible_parameter_component()
@@ -487,6 +566,85 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('No first parameter')
         first_parameter.type_parameter('(333) 999-1212')
         action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
         action_two.check_action_delete()
         message = rule_editor.click_submit_button()
         self.assertEqual(message, 'Execution sequence #3 should be 2 not 3')
+
+    def test_save_prohibited_action_delete_param_change_exist(self):
+        """ Verify that an error is displayed when an action is marked for
+            deletion and its associated parameter value is changed.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_rule(2)
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
+        action_two.check_action_delete()
+        parameter_set = action_two.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('No visible parameter component')
+        first_parameter = parameter_set.get_parameter_element(0)
+        if first_parameter is None:
+            self.fail('No first parameter')
+        first_parameter.type_parameter('(333) 999-1212')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
+        parameter_set = action_two.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('No visible parameter component')
+        self.assertTrue(parameter_set.has_errors)
+        self.assertEqual(parameter_set.get_error(0), 'Cannot change parameter and delete the '
+        + 'associated action at the same time.', 'check for incompatible actions')
+
+    def test_save_action_delete_param_change_new(self):
+        """ Verify that an error is displayed when an action is marked for
+            deletion and the action itself is changed.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_rule(2)
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
+        action_two.check_action_delete()
+        action_two.select_action('Send Email')
+        parameter_set = action_two.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('No visible parameter component')
+        first_parameter = parameter_set.get_parameter_element(0)
+        if first_parameter is None:
+            self.fail('No first parameter')
+        first_parameter.type_parameter('george.jetson@spacely.zz')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
+        parameter_set = action_two.get_invisible_parameter_component()
+        if parameter_set is None:
+            self.fail('No visible parameter component')
+        self.assertTrue(parameter_set.has_errors)
+        self.assertEqual(parameter_set.get_error(0), 'Cannot change parameter and delete the '
+        + 'associated action at the same time.', 'check for incompatible actions')

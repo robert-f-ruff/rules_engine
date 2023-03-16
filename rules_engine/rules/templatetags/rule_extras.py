@@ -15,6 +15,17 @@ def get_id_number(id_string):
     return ''
 
 @register.filter(is_safe=True)
+@stringfilter
+def get_formset_name(id_string):
+    """ This function will extract the name of a formset from the given
+        auto id string.
+    """
+    match = re.search(r'^(.+)-\d{1,}-id$', id_string)
+    if match:
+        return match.group(1)
+    return ''
+
+@register.filter(is_safe=True)
 def get_form_type(form):
     """ This function will return the type of the given form.
     """

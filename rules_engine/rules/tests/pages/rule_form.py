@@ -242,8 +242,7 @@ class ExistingParameterComponent(ParameterComponent):
             param_set_id = record_id_input.get_attribute('value')
             if param_set_id != '':
                 input_id = f'id_param{param_set_id}-TOTAL_FORMS'
-                parameter_count_input = WebDriverWait(page_driver, timeout=3).until(
-                    lambda driver: driver.find_element(by=By.ID, value=input_id))
+                parameter_count_input = self._driver.find_element(by=By.ID, value=input_id)
                 parameter_count = int(
                     parameter_count_input.get_attribute('value'))
             else:
@@ -253,10 +252,9 @@ class ExistingParameterComponent(ParameterComponent):
                                                             parameter_instance=parameter,
                                                             param_set_id=int(param_set_id)))
             errors_element = form_start_element.find_element(
-                by=By.TAG_NAME, value='div')
-            if errors_element.get_attribute('class') == 'alert alert-danger' and errors_element.get_attribute('id') == '':
-                for error in errors_element.find_elements(by=By.TAG_NAME, value='li'):
-                    self._component_errors.append(error.text)
+                by=By.ID, value=f'id_param{param_set_id}_errors')
+            for error in errors_element.find_elements(by=By.TAG_NAME, value='li'):
+                self._component_errors.append(error.text)
         except NoSuchElementException:
             pass
 
@@ -380,8 +378,12 @@ class RuleFormPage(BasePage):
 
     def __init__(self, page_driver: Firefox) -> None:
         super().__init__(page_driver=page_driver)
-        self._submit_button = WebDriverWait(page_driver, timeout=3).until(
-            lambda driver: driver.find_element(by=By.ID, value='submit_button'))
+        try:
+            self._submit_button = WebDriverWait(page_driver, timeout=3).until(
+                lambda driver: driver.find_element(by=By.ID, value='submit_button'))
+        except TimeoutException as error:
+            raise WrongPageError(page_driver.current_url,
+                                 page_name='Rule Editor') from error
         if page_driver.title != 'Rule Editor':
             raise WrongPageError(page_driver.current_url,
                                  page_name='Rule Editor')
@@ -455,9 +457,11 @@ class RuleFormPage(BasePage):
             return self._criteria[criterion].is_selected()
         return False
 
-    def get_action_component(self, form_index: int) -> ActionComponent:
+    def get_action_component(self, form_index: int) -> ActionComponent | None:
         """ This function returns the specified action fieldset."""
-        return self._action_forms[form_index]
+        if form_index < len(self._action_forms):
+            return self._action_forms[form_index]
+        return None
 
     def click_add_action_button(self) -> bool:
         """ This function clicks on the Add Action button."""
