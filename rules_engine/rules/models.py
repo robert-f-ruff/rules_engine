@@ -188,9 +188,11 @@ class RuleActions(models.Model):
         """Define non-field attributes.
         
         (1) A rule cannot have duplicate action numbers.
+        (2) Default ordering is on action_number field. 
         """
         models.UniqueConstraint(fields=['rule', 'action_number'],
             name='unique_action_number')
+        ordering = ['action_number']
 
     def __str__(self) -> str:
         """ This function returns a string describing the object.

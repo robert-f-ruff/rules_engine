@@ -74,10 +74,10 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         first_parameter.type_parameter('george.jetson@spacely.zz')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -108,10 +108,10 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_one.select_action('Send Text Message')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         first_parameter.type_parameter('555-444-1212')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -124,10 +124,10 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
             self.fail('Action component 0 does not exist')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         self.assertTrue(first_parameter.has_errors)
         self.assertEqual(first_parameter.get_error(0), 'Enter a valid value.')
 
@@ -167,17 +167,16 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         first_parameter.type_parameter('george.jetson@spacely.zz')
         self.assertTrue(rule_editor.click_add_action_button(),
                          'can add new action when last action is not empty')
 
-    def test_wrong_first_action_number(self):
-        """ Verify that an alert is displayed on submit if the action number
-            for the first action sequence is not 1.
+    def test_blank_action_number(self):
+        """ Verify an alert is displayed when the action number field is blank.
         """
         self.selenium.get(self.live_server_url + reverse('rules:index'))
         try:
@@ -191,21 +190,29 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_one = rule_editor.get_action_component(0)
         if action_one is None:
             self.fail('Action component 0 does not exist')
-        action_one.type_action_number('2')
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
-        first_parameter = parameter_set.get_parameter_element(0)
-        if first_parameter is None:
-            self.fail('No first parameter')
-        first_parameter.type_parameter('george.jetson@spacely.zz')
+            self.fail('First action has no visible parameter component')
+        parameter_one = parameter_set.get_parameter_element(0)
+        if parameter_one is None:
+            self.fail('First action has no first parameter')
+        parameter_one.type_parameter('george.jetson@spacely.zz')
         message = rule_editor.click_submit_button()
-        self.assertEqual(message, 'Execution sequence #1 should be 1 not 2')
+        self.assertIsNone(message, 'unexpected alert generated')
+        try:
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        self.assertTrue(action_one.action_number_has_errors)
+        self.assertEqual(action_one.get_action_number_error(0), 'This field is required.')
 
-    def test_action_number_missing_sequence(self):
-        """ Verify that an alert is displayed on submit if the action number
-            for the second action sequence is not 2.
+    def test_duplicate_action_number(self):
+        """ Verify an alert is displayed when an action number is duplicated
+            on the form.
         """
         self.selenium.get(self.live_server_url + reverse('rules:index'))
         try:
@@ -223,84 +230,71 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
-        first_parameter = parameter_set.get_parameter_element(0)
-        if first_parameter is None:
-            self.fail('No first parameter')
-        first_parameter.type_parameter('george.jetson@spacely.zz')
-        action_added = rule_editor.click_add_action_button()
-        self.assertTrue(action_added, 'Action added to page')
-        action_two = rule_editor.get_action_component(1)
-        if action_two is None:
-            self.fail('Action component 1 does not exist')
-        action_two.type_action_number('3')
-        action_two.select_action('Send Text Message')
-        parameter_set = action_two.get_visible_parameter_component()
-        if parameter_set is None:
-            self.fail('No visible parameter component')
-        first_parameter = parameter_set.get_parameter_element(0)
-        if first_parameter is None:
-            self.fail('No first parameter')
-        first_parameter.type_parameter('(888) 888-8888')
-        message = rule_editor.click_submit_button()
-        self.assertEqual(message, 'Execution sequence #2 should be 2 not 3')
-
-    def test_action_number_sequence_out_of_order(self):
-        """ Verify that an alert is displayed on submit if the action number
-            for the second action sequence is not 2 and the action number for
-            the third action sequence is not 3.
-        """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
-        try:
-            index_page = IndexPage(page_driver=self.selenium)
-            index_page.click_add_rule()
-            rule_editor = RuleFormPage(page_driver=self.selenium)
-        except WrongPageError as error:
-            self.fail('Wrong page address: ' + str(error))
-        rule_editor.type_name('Test Rule 1')
-        rule_editor.check_criterion('Is Pleasant')
-        action_one = rule_editor.get_action_component(0)
-        if action_one is None:
-            self.fail('Action component 0 does not exist')
-        action_one.type_action_number('1')
-        action_one.select_action('Send Email')
-        parameter_set = action_one.get_visible_parameter_component()
-        if parameter_set is None:
-            self.fail('No visible parameter component')
-        first_parameter = parameter_set.get_parameter_element(0)
-        if first_parameter is None:
-            self.fail('No first parameter')
-        first_parameter.type_parameter('george.jetson@spacely.zz')
-        action_added = rule_editor.click_add_action_button()
-        self.assertTrue(action_added, 'First action added to page')
-        action_two = rule_editor.get_action_component(1)
-        if action_two is None:
-            self.fail('Action component 1 does not exist')
-        action_two.type_action_number('3')
-        action_two.select_action('Send Text Message')
-        parameter_set = action_two.get_visible_parameter_component()
-        if parameter_set is None:
-            self.fail('No visible parameter component')
-        first_parameter = parameter_set.get_parameter_element(0)
-        if first_parameter is None:
-            self.fail('No first parameter')
-        first_parameter.type_parameter('(888) 888-8888')
+            self.fail('First action has no visible parameter component')
+        parameter_one = parameter_set.get_parameter_element(0)
+        if parameter_one is None:
+            self.fail('First action has no first parameter')
+        parameter_one.type_parameter('george.jetson@spacely.zz')
         action_added = rule_editor.click_add_action_button()
         self.assertTrue(action_added, 'Second action added to page')
+        action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
+        action_two.type_action_number('2')
+        action_two.select_action('Send Text Message')
+        parameter_set = action_two.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('Second action has no visible parameter component')
+        parameter_one = parameter_set.get_parameter_element(0)
+        if parameter_one is None:
+            self.fail('Second action has no first parameter')
+        parameter_one.type_parameter('(888) 444-1212')
+        action_added = rule_editor.click_add_action_button()
+        self.assertTrue(action_added, 'Third action added to page')
         action_three = rule_editor.get_action_component(2)
         if action_three is None:
             self.fail('Action component 2 does not exist')
-        action_three.type_action_number('2')
+        action_three.type_action_number('1')
         action_three.select_action('Send Email')
         parameter_set = action_three.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
-        first_parameter = parameter_set.get_parameter_element(0)
-        if first_parameter is None:
-            self.fail('No first parameter')
-        first_parameter.type_parameter('rosie@home.sky')
+            self.fail('Third action has no visible parameter component')
+        parameter_one = parameter_set.get_parameter_element(0)
+        if parameter_one is None:
+            self.fail('Third action has no first parameter')
+        parameter_one.type_parameter('cosmo.spacely@spacely.zz')
         message = rule_editor.click_submit_button()
-        self.assertEqual(message, 'Execution sequence #2 should be 2 not 3')
+        self.assertEqual(message, 'Duplicate action number.\nAction execution '
+                         + 'sequence #3: action #1 is already defined.')
+
+    def test_blank_action(self):
+        """ Verify an alert is displayed when no action is selected from the
+            action dropdown.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_add_rule()
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_editor.type_name('Test Rule 1')
+        rule_editor.check_criterion('Is Pleasant')
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        action_one.type_action_number('1')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message, 'unexpected alert generated')
+        try:
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        self.assertTrue(action_one.action_select_has_errors)
+        self.assertEqual(action_one.get_action_select_error(0), 'This field is required.')
 
     def test_no_criteria_checked(self):
         """ Verify that an alert is displayed if there are no criteria
@@ -321,10 +315,10 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         first_parameter.type_parameter('george.jetson@spacely.zz')
         message = rule_editor.click_submit_button()
         self.assertEqual(message, 'At least one criterion is required')
@@ -369,13 +363,13 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_one.select_action('Send Text Message')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         self.assertEqual(parameter_set.get_component_type,
                         ParameterComponent.NEW_PARAMETER_FORM)
         action_one.select_action('Send Email')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         self.assertEqual(parameter_set.get_component_type,
                         ParameterComponent.EXISTING_PARAMETER_FORM)
 
@@ -394,10 +388,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_one.select_action('Send Text Message')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         parameter_one= parameter_set.get_parameter_element(0)
         if parameter_one is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         parameter_one.type_parameter('(444) 877-1212')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message, 'unexpected alert generated')
@@ -426,10 +420,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('Action component 0 does not exist')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         parameter = parameter_set.get_parameter_element(1)
         if parameter is None:
-            self.fail('No second parameter')
+            self.fail('First action has no second parameter')
         parameter.type_parameter('rosie@home.sky')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -456,10 +450,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('Action component 0 does not exist')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         parameter = parameter_set.get_parameter_element(0)
         if parameter is None:
-            self.fail('No second parameter')
+            self.fail('First action has no second parameter')
         parameter.type_parameter('555-444-1212')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -472,10 +466,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('Action component 0 does not exist')
         parameter_set = action_one.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         self.assertTrue(first_parameter.has_errors)
         self.assertEqual(first_parameter.get_error(0), 'Enter a valid value.')
 
@@ -495,10 +489,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_two.select_action('Send Text Message')
         parameter_set = action_two.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('Second action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('Second action has no first parameter')
         first_parameter.type_parameter('(333) 999-1212')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -515,8 +509,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         self.assertEqual(parameters[0].parameter_value, '(333) 999-1212')
 
     def test_action_number_missing_sequence_first_delete(self):
-        """ Verify that an alert is displayed on submit if the action number
-            following an action marked for delete is not in sequence.
+        """ Verify that the first action is deleted and the new action is
+            added.
         """
         self.selenium.get(self.live_server_url + reverse('rules:index'))
         try:
@@ -532,21 +526,32 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_two.select_action('Send Text Message')
         parameter_set = action_two.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('First action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('First action has no first parameter')
         first_parameter.type_parameter('(333) 999-1212')
         action_one = rule_editor.get_action_component(0)
         if action_one is None:
             self.fail('Action component 0 does not exist')
         action_one.check_action_delete()
         message = rule_editor.click_submit_button()
-        self.assertEqual(message, 'Execution sequence #2 should be 1 not 2')
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_actions = RuleActions.objects.filter(rule=1)
+        self.assertEqual(rule_actions.count(), 1,
+                         'should only be 1 RuleAction')
+        self.assertEqual(rule_actions[0].action_number, 2,
+                         'action number should be 2')
+        self.assertEqual(rule_actions[0].action.name, 'Send Text Message',
+                         'action should be Send Text Message')
 
     def test_action_number_missing_sequence_second_delete(self):
-        """ Verify that an alert is displayed on submit if the action number
-            following an action marked for delete is not in sequence.
+        """ Verify that the second action is deleted and the third action
+            is added.
         """
         self.selenium.get(self.live_server_url + reverse('rules:index'))
         try:
@@ -562,17 +567,32 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_three.select_action('Send Text Message')
         parameter_set = action_three.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('Third action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('Third action has no first parameter')
         first_parameter.type_parameter('(333) 999-1212')
         action_two = rule_editor.get_action_component(1)
         if action_two is None:
             self.fail('Action component 1 does not exist')
         action_two.check_action_delete()
         message = rule_editor.click_submit_button()
-        self.assertEqual(message, 'Execution sequence #3 should be 2 not 3')
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_actions = RuleActions.objects.filter(rule=3)
+        self.assertEqual(rule_actions.count(), 2,
+                         'should only be 2 RuleActions')
+        self.assertEqual(rule_actions[0].action_number, 1,
+                         'first action number should be 1')
+        self.assertEqual(rule_actions[0].action.name, 'Send Email',
+                         'first action should be Send Email')
+        self.assertEqual(rule_actions[1].action_number, 3,
+                         'second action number should be 3')
+        self.assertEqual(rule_actions[1].action.name, 'Send Text Message',
+                         'second action should be Send Text Message')
 
     def test_save_prohibited_action_delete_param_change_exist(self):
         """ Verify that an error is displayed when an action is marked for
@@ -591,10 +611,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_two.check_action_delete()
         parameter_set = action_two.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('Second action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('Second action has no first parameter')
         first_parameter.type_parameter('(333) 999-1212')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -607,7 +627,7 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('Action component 1 does not exist')
         parameter_set = action_two.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('Second action has no visible parameter component')
         self.assertTrue(parameter_set.has_errors)
         self.assertEqual(parameter_set.get_error(0), 'Cannot change parameter and delete the '
         + 'associated action at the same time.', 'check for incompatible actions')
@@ -630,10 +650,10 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         action_two.select_action('Send Email')
         parameter_set = action_two.get_visible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('Second action has no visible parameter component')
         first_parameter = parameter_set.get_parameter_element(0)
         if first_parameter is None:
-            self.fail('No first parameter')
+            self.fail('Second action has no first parameter')
         first_parameter.type_parameter('george.jetson@spacely.zz')
         message = rule_editor.click_submit_button()
         self.assertIsNone(message)
@@ -646,7 +666,32 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('Action component 1 does not exist')
         parameter_set = action_two.get_invisible_parameter_component()
         if parameter_set is None:
-            self.fail('No visible parameter component')
+            self.fail('Second action has no visible parameter component')
         self.assertTrue(parameter_set.has_errors)
         self.assertEqual(parameter_set.get_error(0), 'Cannot change parameter and delete the '
         + 'associated action at the same time.', 'check for incompatible actions')
+
+    def test_actions_sorted_ascending(self):
+        """ Verify that actions are sorted by action number."""
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_rule(3)
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        self.assertEqual(action_one.get_action_number(), 1,
+                         'first action should be 1')
+        action_two = rule_editor.get_action_component(1)
+        if action_two is None:
+            self.fail('Action component 1 does not exist')
+        self.assertEqual(action_two.get_action_number(), 2,
+                         'second action should be 2')
+        action_three = rule_editor.get_action_component(2)
+        if action_three is None:
+            self.fail('Action component 2 does not exist')
+        self.assertEqual(action_three.get_action_number(), 3,
+                         'third action should be 3')

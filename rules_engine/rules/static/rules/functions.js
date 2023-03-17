@@ -68,7 +68,7 @@ function validateForm() {
     if (validateCriteria() == false) {
         return false;
     }
-    return validateActions();
+    return validateActionNumbers();
 }
 
 function validateCriteria() {
@@ -86,51 +86,19 @@ function validateCriteria() {
     return true;
 }
 
-function validateActions() {
-    let form_count = parseInt(document.getElementById("id_ruleactions_set-TOTAL_FORMS").value)
+function validateActionNumbers() {
+    let form_count = parseInt(document.getElementById("id_ruleactions_set-TOTAL_FORMS").value);
+    const numbers = [];
     for (var number = 0; number < form_count; number++) {
         if (document.getElementById("id_ruleactions_set-" + number + "-DELETE").checked) {
             continue;
         }
         let this_sequence = document.getElementById("id_ruleactions_set-" + number + "-action_number").value;
-        let action = document.getElementById("id_ruleactions_set-" + number + "-action").value;
-        if (number == 0 && this_sequence != 1) {
-            if (action == "") {
-                alert("At least one action is required");
-                return false;
-            }
-            alert("Execution sequence #1 should be 1 not " + this_sequence);
-            return false;
+        if (! numbers.includes(this_sequence)) {
+            numbers.push(this_sequence);
         }
-        else if (number > 0) {
-            let last_sequence;
-            //Find the first previous sequence not marked for deletion
-            for (var last_number = number - 1; last_number >= 0; last_number--) {
-                if (! document.getElementById("id_ruleactions_set-" + last_number + "-DELETE").checked) {
-                    last_sequence = document.getElementById("id_ruleactions_set-" + last_number + "-action_number").value;
-                    break;
-                }
-            }
-            if (typeof last_sequence !== "undefined") {
-                if (number == (form_count - 1) && this_sequence == "") {
-                    if (action != "") {
-                        alert("Execution sequence #" + (number + 1) + " should be " + (parseInt(last_sequence) + 1) + " not empty");
-                        return false;
-                    }
-                    return true;
-                }
-                else if (this_sequence != (parseInt(last_sequence) + 1)) {
-                    alert("Execution sequence #" + (number + 1) + " should be " + (parseInt(last_sequence) + 1) + " not " + this_sequence);
-                    return false;
-                }
-            }
-            else if (this_sequence != 1) {
-                alert("Execution sequence #" + (number + 1) + " should be 1 not " + this_sequence);
-                return false;
-            }
-        }
-        if (action == "" && this_sequence != "") {
-            alert("Execution sequence #" + (number + 1) + " must have an action")
+        else {
+            alert("Duplicate action number.\nAction execution sequence #" + (number + 1) + ": action #" + this_sequence + " is already defined.");
             return false;
         }
     }

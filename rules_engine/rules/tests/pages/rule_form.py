@@ -297,6 +297,10 @@ class ActionComponent():
         """
         move_send_keys(self._driver, self._action_number_input, action_number)
 
+    def get_action_number(self) -> int:
+        """ This function returns the action number of this component."""
+        return int(self._action_number_input.get_attribute('value'))
+
     @property
     def action_number_has_errors(self) -> bool:
         """ This function returns whether this component has any server errors."""
