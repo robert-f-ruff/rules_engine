@@ -1,0 +1,14 @@
+services:
+  django:
+    build:
+      context: .
+    container_name: django_service
+    env_file:
+      - docker.env
+
+  nginx:
+    build:
+      context: web_server/
+    container_name: nginx_service
+    ports:
+    - 8000:8000

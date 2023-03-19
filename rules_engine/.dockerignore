@@ -1,0 +1,10 @@
+/rules/fixtures
+/rules/migrations
+/rules/static
+/rules/tests
+/Dockerfile
+/.dockerignore
+/*.env
+/*.conf
+/*.yml
+/htmlcov
