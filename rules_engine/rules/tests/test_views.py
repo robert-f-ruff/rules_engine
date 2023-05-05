@@ -60,7 +60,7 @@ class IndexViewTests(TestCase):
         response = self.client.get(reverse('rules:index'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'There are no rules to manage.')
-        self.assertQuerysetEqual(response.context['rule_list'], [])
+        self.assertQuerySetEqual(response.context['rule_list'], [])
 
     def test_rules(self):
         """ When there is one or more rules, the rule(s) are displayed.
@@ -68,7 +68,7 @@ class IndexViewTests(TestCase):
         rule_one = Rule.objects.create(name='Test Rule 1')
         response = self.client.get(reverse('rules:index'))
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(qs=response.context['rule_list'], values=[rule_one]) # type: ignore
+        self.assertQuerySetEqual(qs=response.context['rule_list'], values=[rule_one]) # type: ignore
 
 
 class RuleDeleteViewTests(TestCase):

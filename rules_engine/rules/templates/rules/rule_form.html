@@ -74,10 +74,12 @@
                         {{ action_form.action }}
                         <p class="form-text">{{ action_form.action.help_text|safe }}</p>
                     </div>
+                    {% if action_form.DELETE is not None %}
                     <div class="form-check">
                         {{ action_form.DELETE|add_class:'form-check-input' }}
-                        <label for="{{ action_form.DELETE.id_for_label }}" class="form-check-label">Delete</label>
+                        <label for="{{ action_form.DELETE.id_for_label }}" class="form-check-label">Delete Action</label>
                     </div>
+                    {% endif %}
                     {% if parameter_collection.0 is not None %}
                     <div id="action_parameter_{{ action_form.id.auto_id|get_id_number }}_{{ parameter_collection.0|get_form_type }}">
                         {{ parameter_collection.0.management_form }}

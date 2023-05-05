@@ -90,8 +90,11 @@ function validateActionNumbers() {
     let form_count = parseInt(document.getElementById("id_ruleactions_set-TOTAL_FORMS").value);
     const numbers = [];
     for (var number = 0; number < form_count; number++) {
-        if (document.getElementById("id_ruleactions_set-" + number + "-DELETE").checked) {
-            continue;
+        let delete_control = document.getElementById("id_ruleactions_set-" + number + "-DELETE");
+        if (delete_control != null) {
+            if (delete_control.checked) {
+                continue;
+            }
         }
         let this_sequence = document.getElementById("id_ruleactions_set-" + number + "-action_number").value;
         if (! numbers.includes(this_sequence)) {

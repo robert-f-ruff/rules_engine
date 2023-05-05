@@ -39,14 +39,12 @@ class RuleActionsForm(ModelForm):
         self.fields['action'].empty_label = ''
 
 
-# 02/22/2023: Uncomment can_delete_extra=False after upgrading to Django 4.2
-# Issue #34349: https://code.djangoproject.com/ticket/34349
 RuleActionsFormSet = inlineformset_factory(Rule,
                                            RuleActions,
                                            form=RuleActionsForm,
                                            extra=1,
-                                           can_delete=True)
-                                        #    can_delete_extra=False)
+                                           can_delete=True,
+                                           can_delete_extra=False)
 
 
 class RuleActionParametersForm(ModelForm):

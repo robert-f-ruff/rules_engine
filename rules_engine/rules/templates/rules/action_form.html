@@ -26,9 +26,11 @@
     {{ action_form.action }}
     <p class="form-text">{{ action_form.action.help_text|safe }}</p>
 </div>
+{% if action_form.DELETE is not None %}
 <div class="form-check">
     {{ action_form.DELETE|add_class:'form-check-input' }}
-    <label for="" class="form-check-label">Delete</label>
+    <label for="" class="form-check-label">Delete Action</label>
 </div>
+{% endif %}
 <div id="action_parameter___prefix___ActionParameterForm">
 </div>

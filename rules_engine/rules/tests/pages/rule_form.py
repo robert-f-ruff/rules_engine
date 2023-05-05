@@ -215,7 +215,8 @@ class NewParameterComponent(ParameterComponent):
                                                             parameter_instance=parameter))
                 errors_element = form_start_element.find_element(
                     by=By.TAG_NAME, value='div')
-                if errors_element.get_attribute('class') == 'alert alert-danger' and errors_element.get_attribute('id') == '':
+                if (errors_element.get_attribute('class') == 'alert alert-danger'
+                    and errors_element.get_attribute('id') == ''):
                     for error in errors_element.find_elements(by=By.TAG_NAME, value='li'):
                         self._component_errors.append(error.text)
             except NoSuchElementException:
@@ -287,8 +288,11 @@ class ActionComponent():
                                                         value=prefix + 'action')
         self._action_select_errors = parse_errors(
             page_driver, prefix + 'action_errors')
-        self._action_delete_input = self._driver.find_element(by=By.ID,
-                                                              value=prefix + 'DELETE')
+        try:
+            self._action_delete_input = self._driver.find_element(by=By.ID,
+                                                            value=prefix + 'DELETE')
+        except NoSuchElementException:
+            self._action_delete_input = None
         self._parameters = parameter_component_factory(page_driver, instance)
 
     def type_action_number(self, action_number: str) -> None:
@@ -338,13 +342,16 @@ class ActionComponent():
         """ This function clicks on the Delete checkbox for the specified
             action.
         """
-        move_click(self._driver, self._action_delete_input)
+        if self._action_delete_input is not None:
+            move_click(self._driver, self._action_delete_input)
 
     def is_action_delete_checked(self) -> bool:
-        """ This function returns whetehr the specified action's Delete
+        """ This function returns whether the specified action's Delete
             checkbox is checked.
         """
-        return self._action_delete_input.is_selected()
+        if self._action_delete_input is not None:
+            return self._action_delete_input.is_selected()
+        return False
 
     @property
     def has_errors(self) -> bool:
