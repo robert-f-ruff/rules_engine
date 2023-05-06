@@ -1,4 +1,4 @@
-/rules/fixtures
+/rules/fixtures/*test*.json
 /rules/migrations
 /rules/static
 /rules/tests
