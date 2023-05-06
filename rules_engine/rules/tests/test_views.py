@@ -60,7 +60,7 @@ class IndexViewTests(TestCase):
         response = self.client.get(reverse('rules:index'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'There are no rules to manage.')
-        self.assertQuerySetEqual(response.context['rule_list'], [])
+        self.assertQuerySetEqual(response.context['rule_list'], []) # type: ignore
 
     def test_rules(self):
         """ When there is one or more rules, the rule(s) are displayed.
