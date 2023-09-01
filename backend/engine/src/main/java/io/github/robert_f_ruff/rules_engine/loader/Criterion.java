@@ -1,39 +1,23 @@
-package io.github.robert_f_ruff.rules_engine;
+package io.github.robert_f_ruff.rules_engine.loader;
 
-import java.io.Serializable;
-import java.lang.String;
 import java.util.Objects;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name="rules_criterion")
-public class Criterion implements Serializable {
-	@Id
+public class Criterion {
 	private String name;
 	private String logic;
-	private static final long serialVersionUID = 1L;
 	
 	public String getName() {
 		return this.name;
 	}
 	
-	public void setName(String name) {
-		this.name = name;
-	}   
-	
 	public String getLogic() {
 		return this.logic;
 	}
 	
-	public void setLogic(String logic) {
-		this.logic = logic;
-	}
-	
-	public Criterion() {
+	public Criterion(String name, String logic) {
 		super();
+		this.name = name;
+		this.logic = logic;
 	}
 	
 	@Override
