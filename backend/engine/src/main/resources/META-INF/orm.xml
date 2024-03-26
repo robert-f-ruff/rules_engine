@@ -27,8 +27,7 @@
         <query>
 			SELECT actionValues.rule_id, actionValues.action_number,
 				actionValues.action_id, actionDefinition.function,
-				actionDefinition.parameter_number, actionValues.parameter_id,
-				actionValues.parameter_value
+				actionValues.parameter_id, actionValues.parameter_value
 			FROM (
 				SELECT ruleAction.rule_id, ruleAction.action_number,
 					ruleAction.action_id, ruleParameter.parameter_id,
