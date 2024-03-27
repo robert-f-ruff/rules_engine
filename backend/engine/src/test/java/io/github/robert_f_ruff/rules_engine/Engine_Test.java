@@ -1,5 +1,6 @@
 package io.github.robert_f_ruff.rules_engine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -174,5 +175,11 @@ class Engine_Test {
     engine.run(observation1);
 
     assertFalse(action1.getExecuted());
+  }
+
+  @Test
+  void test_Engine_Status_Idle() {
+    Engine engine = new Engine(repository);
+    assertEquals(Engine.Status.IDLE, engine.getStatus());
   }
 }

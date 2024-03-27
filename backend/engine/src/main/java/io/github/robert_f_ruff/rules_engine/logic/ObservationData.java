@@ -3,13 +3,17 @@ package io.github.robert_f_ruff.rules_engine.logic;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import jakarta.validation.constraints.Min;
+
 /**
  * Defines the data associated with an observation of a patient.
  * @author Robert F. Ruff
  * @version 1.0
  */
 public class ObservationData {
+  @Min(value =  0, message = "The value must be positive.")
   private BigDecimal weight;
+  @Min(value = 0, message = "The value must be positive.")
   private BigDecimal glucose;
 
   /**

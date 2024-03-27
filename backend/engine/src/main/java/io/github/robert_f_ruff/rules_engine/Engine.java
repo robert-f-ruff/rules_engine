@@ -22,8 +22,33 @@ import jakarta.inject.Inject;
  */
 @ApplicationScoped
 public class Engine {
+	/**
+	 * Identifies the possible states of the engine.
+	 * @since 1.0
+	 */
+	public static enum Status {
+		/**
+		 * Engine is idle, waiting for data.
+		 * @since 1.0
+		 */
+		IDLE,
+		/**
+		 * Engine is running, processing data.
+		 * @since 1.0
+		 */
+		RUNNING
+	}
 	RuleRepository repository;
 	Logger logger;
+	Status status;
+
+	/**
+	 * Returns the current state of the engine.
+	 * @return The engine's current state.
+	 */
+	public Status getStatus() {
+		return status;
+	}
 
 	/**
 	 * Perform the evaluation of the rule set.
@@ -31,6 +56,7 @@ public class Engine {
    * @since 1.0
 	 */
 	public void run(Object rawData) {
+		status = Status.RUNNING;
 		logger.fine("Engine start");
 		ArrayList<Criterion> criteria = repository.getCriteria();
 		logger.fine("Processing criteria:");
@@ -62,6 +88,7 @@ public class Engine {
 				logger.warning("Skipping rule " + rule.getName() + " as criterion " + e.getMessage() + " is not evaluated");
 			}
 		});
+		status = Status.IDLE;
 	}
 
 	/**
@@ -73,5 +100,6 @@ public class Engine {
 	public Engine(RuleRepository repository) {
 		this.repository = repository;
 		logger = Logger.getLogger(this.getClass().getName());
+		status = Status.IDLE;
 	}
 }

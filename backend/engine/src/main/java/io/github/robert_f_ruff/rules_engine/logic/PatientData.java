@@ -4,6 +4,9 @@ import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+
 /**
  * Defines the data associated with a patient.
  * @author Robert F. Ruff
@@ -25,7 +28,10 @@ public class PatientData {
     FEMALE
   }
 
+  @NotNull
   private Gender gender;
+  @NotNull
+  @Past
   private LocalDate birthDate;
 
   /**
