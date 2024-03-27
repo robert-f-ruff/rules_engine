@@ -52,6 +52,7 @@ public class EngineResource {
 
   /**
    * Reloads the rule set from the database.
+   * @param request Details of the external request
    * @return Dummy status since reloadRules() does not return a status
    */
   @PUT

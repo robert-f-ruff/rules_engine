@@ -27,6 +27,7 @@ public class DataResource {
   /**
    * Run the engine with the received data object.
    * @param patient The data object instance to evaluate
+   * @return Status of processing the data
    * @since 1.0
    */
   @POST
@@ -39,6 +40,7 @@ public class DataResource {
   /**
    * Run the engine with the received data object.
    * @param observation The data object instance to evaluate
+   * @return Status of processing the data
    * @since 1.0
    */
   @POST
