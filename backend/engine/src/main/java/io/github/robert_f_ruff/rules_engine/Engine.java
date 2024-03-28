@@ -98,7 +98,15 @@ public class Engine {
 	 */
 	@Inject
 	public Engine(RuleRepository repository) {
+		this();
 		this.repository = repository;
+	}
+
+	/**
+	 * New instance of Engine.
+	 */
+	public Engine() {
+		this.repository = null;
 		logger = Logger.getLogger(this.getClass().getName());
 		status = Status.IDLE;
 	}

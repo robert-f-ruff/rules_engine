@@ -1,5 +1,6 @@
 package io.github.robert_f_ruff.rules_engine.actions;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
@@ -8,6 +9,7 @@ import jakarta.inject.Inject;
  * @author Robert F. Ruff
  * @version 1.0
  */
+@Dependent
 public final class ActionFactory {
   @Inject
   Instance<Action> availableActions;

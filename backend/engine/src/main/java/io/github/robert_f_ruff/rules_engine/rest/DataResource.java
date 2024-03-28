@@ -59,4 +59,11 @@ public class DataResource {
   public DataResource(Engine engine) {
     this.engine = engine;
   }
+
+  /**
+   * New instance of DataResource.
+   */
+  public DataResource() {
+    this.engine = null;
+  }
 }

@@ -87,4 +87,13 @@ public class EngineResource {
     this.engine = engine;
     this.key = key;
   }
+
+  /**
+   * New instance of EngineResource.
+   */
+  public EngineResource() {
+    this.repository = null;
+    this.engine = null;
+    this.key = "";
+  }
 }

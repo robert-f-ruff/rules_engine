@@ -199,7 +199,15 @@ public class RuleRepository {
 	 */
 	@Inject
 	public RuleRepository(ActionFactory actionFactory) {
+		this();
 		this.actionFactory = actionFactory;
+	}
+
+	/**
+	 * New instance of RuleRepository.
+	 */
+	public RuleRepository() {
+		this.actionFactory = null;
 		rules = new HashMap<>();
 		criteria = new ArrayList<>();
 		actions = new HashMap<>();

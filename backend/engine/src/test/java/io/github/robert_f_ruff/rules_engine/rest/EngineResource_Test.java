@@ -1,5 +1,6 @@
 package io.github.robert_f_ruff.rules_engine.rest;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -65,5 +66,10 @@ public class EngineResource_Test {
     EngineResource resource = new EngineResource(engine, repository, "AAAAA");
     EngineResponse expected = new EngineResponse(EngineResource.Status.FAILED);
     assertTrue(expected.equals(resource.reloadRules(new EngineRequest("BBBBB"))));
+  }
+
+  @Test
+  void test_Default_Constructor() {
+    assertDoesNotThrow(() -> new EngineResource());
   }
 }
