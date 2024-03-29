@@ -104,6 +104,7 @@ public class Engine {
 
 	/**
 	 * New instance of Engine.
+	 * @since 1.0
 	 */
 	public Engine() {
 		this.repository = null;

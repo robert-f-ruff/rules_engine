@@ -205,6 +205,7 @@ public class RuleRepository {
 
 	/**
 	 * New instance of RuleRepository.
+	 * @since 1.0
 	 */
 	public RuleRepository() {
 		this.actionFactory = null;

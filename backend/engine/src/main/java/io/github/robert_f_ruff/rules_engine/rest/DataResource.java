@@ -62,6 +62,7 @@ public class DataResource {
 
   /**
    * New instance of DataResource.
+   * @since 1.0
    */
   public DataResource() {
     this.engine = null;

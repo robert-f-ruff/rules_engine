@@ -90,6 +90,7 @@ public class EngineResource {
 
   /**
    * New instance of EngineResource.
+   * @since 1.0
    */
   public EngineResource() {
     this.repository = null;
