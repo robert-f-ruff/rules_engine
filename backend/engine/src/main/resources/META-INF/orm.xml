@@ -54,7 +54,6 @@
 				<column name = "action_number" class = "java.lang.Integer"/>
 				<column name = "action_id"/>
 				<column name = "function"/>
-				<column name = "parameter_number" class = "java.lang.Integer"/>
 				<column name = "parameter_id"/>
 				<column name = "parameter_value"/>
         </constructor-result>

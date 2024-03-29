@@ -2,6 +2,7 @@ package io.github.robert_f_ruff.rules_engine.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,18 @@ public class EngineRequest_Test {
   void test_AccessCode() {
     EngineRequest engineRequest = new EngineRequest("AAAAA");
     assertEquals("AAAAA", engineRequest.getAccessCode());
+  }
+
+  @Test
+  void test_Default_Constructor() {
+    assertDoesNotThrow(() -> new EngineRequest());
+  }
+
+  @Test
+  void test_Change_AccessCode() {
+    EngineRequest engineRequest = new EngineRequest();
+    engineRequest.setAccessCode("BBBBBB");
+    assertEquals("BBBBBB", engineRequest.getAccessCode());
   }
 
   @Test

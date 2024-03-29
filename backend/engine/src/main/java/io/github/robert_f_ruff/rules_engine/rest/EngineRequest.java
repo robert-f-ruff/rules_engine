@@ -23,12 +23,29 @@ public class EngineRequest {
   }
 
   /**
-   * New instance of EngineRequest
+   * Populates the authorization key.
+   * @param accessCode Authorization key
+   * @since 1.0
+   */
+  public void setAccessCode(String accessCode) {
+    this.accessCode = accessCode;
+  }
+
+  /**
+   * New instance of EngineRequest.
    * @param accessCode The authorization key for this request
    * @since 1.0
    */
   public EngineRequest(String accessCode) {
     this.accessCode = accessCode;
+  }
+
+  /**
+   * New intance of EngineRequest.
+   * @since 1.0
+   */
+  public EngineRequest() {
+    accessCode = "";
   }
 
   /**
