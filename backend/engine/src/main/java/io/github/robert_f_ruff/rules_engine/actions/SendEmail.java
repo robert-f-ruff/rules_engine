@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-import jakarta.annotation.Resource;
-import jakarta.inject.Inject;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
@@ -25,7 +21,6 @@ import jakarta.mail.internet.MimeMessage;
  * @version 1.0
  */
 public class SendEmail implements Action {
-  @Resource(mappedName = "java:jboss/mail/MyOtherMail")
   private Session session;
   private InternetAddress fromAddress;
   private HashMap<Message.RecipientType, List<InternetAddress>> parameters;
@@ -105,33 +100,14 @@ public class SendEmail implements Action {
   }
 
   /**
-   * New test-friendly instance of SendEmail; verifies that {@code fromAddress} is valid.
+   * New instance of SendEmail.
    * @param session An instance of class Session that contains a connection to the mail server
    * @param fromAddress The email address to use in the message's from header
    * @since 1.0
-   * @throws ActionException Invalid from address
    */
-  public SendEmail(Session session, String fromAddress) throws ActionException {
-    this(fromAddress);
+  public SendEmail(Session session, InternetAddress fromAddress) {
     this.session = session;
-  }
-  
-  /**
-   * New production-friendly instance of SendEmail; verifies that {@code fromAddress} is valid.
-   * @param fromAddress The email address to use in the message's from header,
-   *     set from the {@systemProperty rules_engine_SendEmail_from_address} configuration property
-   * @since 1.0
-   * @throws ActionException Invalid from address
-   */
-  @Inject
-  public SendEmail(@ConfigProperty(name="rules_engine_SendEmail_from_address") String fromAddress)
-      throws ActionException {
-    try {
-      this.fromAddress = new InternetAddress(fromAddress, true);
-    } catch (AddressException e) {
-      throw new ActionException("SendEmail - Invalid from address " + fromAddress + ": "
-          + e.getMessage());
-    }
+    this.fromAddress = fromAddress;
     parameters = new HashMap<>();
   }
 

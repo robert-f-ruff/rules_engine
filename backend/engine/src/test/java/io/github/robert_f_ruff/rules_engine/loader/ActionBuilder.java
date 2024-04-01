@@ -1,37 +1,22 @@
 package io.github.robert_f_ruff.rules_engine.loader;
 
 import java.util.HashMap;
-import java.util.Iterator;
-
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-
 import io.github.robert_f_ruff.rules_engine.actions.Action;
-import io.github.robert_f_ruff.rules_engine.actions.ActionException;
 import io.github.robert_f_ruff.rules_engine.actions.ActionFactory;
 import io.github.robert_f_ruff.rules_engine.actions.ActionFactoryException;
 import io.github.robert_f_ruff.rules_engine.actions.ParameterException;
-import io.github.robert_f_ruff.rules_engine.actions.SendEmail;
-import jakarta.enterprise.inject.Instance;
 import jakarta.mail.Session;
 
 public class ActionBuilder {
   private String actionType;
   private HashMap<String, String> parameters;
-
-  @Spy
-  Instance<Action> availableActions;
-  @InjectMocks
-  ActionFactory actionFactory;
+  private ActionFactory actionFactory;
   @Mock
-  Iterator<Action> iterator;
-  @Mock
-  Session session;
+  private Session session;
 
-  public static ActionBuilder anAction() throws ActionException {
+  public static ActionBuilder anAction() throws ActionFactoryException {
     return new ActionBuilder();
   }
 
@@ -66,12 +51,10 @@ public class ActionBuilder {
     return action;
   }
 
-  public ActionBuilder() throws ActionException {
+  public ActionBuilder() throws ActionFactoryException {
     actionType = "SendEmail";
     parameters = new HashMap<>();
     MockitoAnnotations.openMocks(this);
-    Mockito.when(availableActions.iterator()).thenReturn(iterator);
-    Mockito.when(iterator.hasNext()).thenReturn(true).thenReturn(false);
-    Mockito.when(iterator.next()).thenReturn(new SendEmail(session, "postmaster@spacely.com"));
+    actionFactory = new ActionFactory(session, "postmaster@spacely.com");
   }
 }

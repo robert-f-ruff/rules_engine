@@ -4,33 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Iterator;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-
-import jakarta.enterprise.inject.Instance;
 import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ActionFactory_Test {
-  @Spy
-  Instance<Action> availableActions;
-
-  @InjectMocks
-  ActionFactory actionFactory;
-
-  @Mock
-  Iterator<Action> iterator;
-  
   @Mock
   Session session;
 
@@ -39,24 +24,28 @@ public class ActionFactory_Test {
     MockitoAnnotations.openMocks(this);
   }
 
-  @BeforeEach
-  void setup() throws ActionException {
-    Mockito.when(availableActions.iterator()).thenReturn(iterator);
-    Mockito.when(iterator.hasNext()).thenReturn(true).thenReturn(false);
-    Mockito.when(iterator.next()).thenReturn(new SendEmail(session, "postmaster@spacely.com"));
-  }
-
   @Test
-  void test_SendEmail_Creation() throws ActionException, ActionFactoryException {
-    Action expected = new SendEmail(session, "postmaster@spacely.com");
-    Action reference = actionFactory.createInstance("SendEmail");
+  void test_SendEmail_Creation() throws ActionException, ActionFactoryException, AddressException {
+    ActionFactory factory = new ActionFactory(session, "postmaster@spacely.com");
+    Action expected = new SendEmail(session, new InternetAddress("postmaster@spacely.com"));
+    Action reference = factory.createInstance("SendEmail");
     assertTrue(expected.equals(reference));
   }
 
   @Test
-  void test_Invalid_Action_Type() {
+  void test_Invalid_Action_Type() throws ActionFactoryException {
+    ActionFactory factory = new ActionFactory(session, "postmaster@spacely.com");
     Exception exception = assertThrows(ActionFactoryException.class,
-        () -> actionFactory.createInstance("NoSuchAction"));
+        () -> factory.createInstance("NoSuchAction"));
     assertEquals("Unknown action type: NoSuchAction", exception.getMessage());
+  }
+
+
+  @Test
+  void test_Invalid_From_Address() {
+    Exception exception = assertThrows(ActionFactoryException.class,
+        () -> new ActionFactory(session, "postmaster"));
+    assertEquals("Invalid rules_engine_SendEmail_from_address postmaster: Missing final '@domain'",
+        exception.getMessage());
   }
 }
