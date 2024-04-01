@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views import generic, View
-from .models import ActionParameters, Rule, RuleActions
+from .models import ActionParameters, Rule, RuleActions, RuleActionParameters
 from .forms import RuleForm, RuleActionsFormSet, ActionParametersFormSet, ActionParameterForm
 
 
@@ -62,9 +62,15 @@ class RuleView(View):
                 self.parameter_formsets.append(
                     ActionParametersFormSet(instance=rule_action_form.instance,
                                             prefix='param' + str(rule_action_form.instance.pk)))
+                parameter_form = self.get_part_action_parameter_form(
+                                                            rule_action_form=rule_action_form)
+                if parameter_form is not None:
+                    self.parameter_forms.append(parameter_form)
+                else:
+                    self.parameter_forms.append(None)
             else:
                 self.parameter_formsets.append(None)
-            self.parameter_forms.append(None)
+                self.parameter_forms.append(None)
         return render(request, self.template_name, self.get_context_data())
 
     def post(self, request: HttpRequest, *args, rule_id=0, **kwargs):
@@ -86,28 +92,35 @@ class RuleView(View):
                 formset = ActionParametersFormSet(data=request.POST,
                             instance=rule_action_form.instance,
                             prefix='param' + str(rule_action_form.instance.pk))
+                self.parameter_formsets.append(formset)
                 if not formset.is_valid():
                     all_pass = False
-                elif rule_action_form.cleaned_data.get('DELETE'):
-                    for form in formset:
-                        if form.has_changed():
-                            form.add_error(None, self.ACT_DELETE_PARAMETER_CHANGE)
-                            all_pass = False
-                self.parameter_formsets.append(formset)
-                self.forms_to_save['form_sets'].append(self.parameter_formsets.index(formset))
+                else:
+                    if rule_action_form.cleaned_data.get('DELETE'):
+                        for form in formset:
+                            if form.has_changed():
+                                form.add_error(None, self.ACT_DELETE_PARAMETER_CHANGE)
+                                all_pass = False
+                    else:
+                        self.forms_to_save['form_sets'].append(
+                                                        self.parameter_formsets.index(formset))
             else:
                 self.parameter_formsets.append(None)
             if int(request.POST.get(ActionParameterForm.get_prefix(form_id)
                                     + 'parameter_count', 0)) > 0:
-                parameter_form = get_action_parameter_form(
-                    action_name=rule_action_form['action'].value(),
-                    ruleaction_set_id=str(form_id),
-                    data=request.POST
-                )
+                parameter_form = self.get_part_action_parameter_form(data=request.POST,
+                                                            rule_action_form=rule_action_form)
+                if parameter_form is None:
+                    parameter_form = get_action_parameter_form(
+                        action_name=rule_action_form['action'].value(),
+                        ruleaction_set_id=str(form_id),
+                        data=request.POST
+                    )
+                self.parameter_forms.append(parameter_form)
                 if not parameter_form.is_valid():
                     all_pass = False
-                self.parameter_forms.append(parameter_form)
-                self.forms_to_save['forms'].append(self.parameter_forms.index(parameter_form))
+                else:
+                    self.forms_to_save['forms'].append(self.parameter_forms.index(parameter_form))
             else:
                 self.parameter_forms.append(None)
         if all_pass:
@@ -126,9 +139,10 @@ class RuleView(View):
         """ This function returns the context dictionary with all the
             data needed by the template.
         """
-        for index in self.forms_to_save['forms']:
-            self.parameter_forms[index] = render_to_string('rules/action_parameter_form.html',
-                                         {'parameter_form': self.parameter_forms[index]})
+        for index, parameter_form in enumerate(self.parameter_forms):
+            if self.parameter_forms[index] is not None:
+                self.parameter_forms[index] = render_to_string('rules/action_parameter_form.html',
+                                            {'parameter_form': parameter_form})
         rule_action_parameters_items = zip(self.parameter_formsets,
                                            self.parameter_forms,
                                            strict=True)
@@ -154,6 +168,24 @@ class RuleView(View):
             self.template_name = 'rules/rule_edit.html'
         else:
             self.template_name = 'rules/rule_create.html'
+
+    def get_part_action_parameter_form(self, rule_action_form, data=None):
+        """ This function will return a new parameter form containing just the
+            parameters that do not exist in the database.
+        """
+        if rule_action_form.instance.pk:
+            missing_parameters = ActionParameters.objects.filter(
+                action=rule_action_form.instance.action).exclude(parameter__in=
+                RuleActionParameters.objects.filter(rule_action=rule_action_form.instance)
+                    .values_list('parameter', flat=True)).order_by('parameter_number')
+            if len(missing_parameters) > 0:
+                fields = []
+                for action_parameter in missing_parameters:
+                    fields.append({'parameter': action_parameter.parameter,
+                                'parameter_number': action_parameter.parameter_number})
+                return ActionParameterForm(data, create_fields=fields,
+                    ruleaction_set_id=self.rule_actions_formset.forms.index(rule_action_form))
+        return None
 
 def parameters(request, action_name):
     """ This function will return a JSON object containing the parameters

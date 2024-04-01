@@ -19,20 +19,23 @@
         //the action forms and hide the parameter form linked to a database
         //record if there is also a parameter form not linked to a database
         //record for that action form.
-        let form_count = document.getElementById("id_ruleactions_set-TOTAL_FORMS").value;
-        for (var form_number = 0; form_number < form_count; form_number++) {
-            let parameter_form = document.getElementById("action_parameter_" + form_number + "_ActionParameterForm");
-            if (parameter_form.children.length > 0) {
-                let action_record_id = document.getElementById("id_ruleactions_set-" + form_number + "-id").value;
-                if (action_record_id != "") {
-                    let parameter_count = document.getElementById("id_param" + action_record_id + "-TOTAL_FORMS").value;
-                    for (var i = 0; i < parameter_count; i++) {
-                        let parameter_control = document.getElementById("id_param" + action_record_id + "-" + i + "-parameter_value");
-                        let label_control = parameter_control.previousElementSibling;
-                        let help_text = parameter_control.nextElementSibling;
-                        hideControl(label_control);
-                        hideControl(parameter_control);
-                        hideControl(help_text);
+        let form_errors = document.getElementsByClassName("alert alert-danger");
+        if (form_errors.length > 0) {
+            let form_count = document.getElementById("id_ruleactions_set-TOTAL_FORMS").value;
+            for (var form_number = 0; form_number < form_count; form_number++) {
+                let parameter_form = document.getElementById("action_parameter_" + form_number + "_ActionParameterForm");
+                if (parameter_form.children.length > 0) {
+                    let action_record_id = document.getElementById("id_ruleactions_set-" + form_number + "-id").value;
+                    if (action_record_id != "") {
+                        let parameter_count = document.getElementById("id_param" + action_record_id + "-TOTAL_FORMS").value;
+                        for (var i = 0; i < parameter_count; i++) {
+                            let parameter_control = document.getElementById("id_param" + action_record_id + "-" + i + "-parameter_value");
+                            let label_control = parameter_control.previousElementSibling;
+                            let help_text = parameter_control.nextElementSibling;
+                            hideControl(label_control);
+                            hideControl(parameter_control);
+                            hideControl(help_text);
+                        }
                     }
                 }
             }

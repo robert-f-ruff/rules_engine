@@ -2,7 +2,7 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from selenium.webdriver import Firefox, FirefoxOptions
-from rules.models import RuleActions, RuleActionParameters
+from rules.models import Rule, RuleActions, RuleActionParameters
 from .pages.base import WrongPageError
 from .pages.index import IndexPage
 from .pages.rule_form import RuleFormPage, ParameterComponent
@@ -323,6 +323,45 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         message = rule_editor.click_submit_button()
         self.assertEqual(message, 'At least one criterion is required')
 
+    def test_create_rule_empty_parameter(self):
+        """ Verify that a parameter record is not created when an optional
+            parameter has no value.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_add_rule()
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_editor.type_name('Test Rule 1')
+        self.assertTrue(rule_editor.check_criterion('Is Pleasant'),
+                        'checking Is Pleasant criterion')
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        action_one.type_action_number('1')
+        action_one.select_action('Send Email')
+        parameter_set = action_one.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('First action has no visible parameter component')
+        first_parameter = parameter_set.get_parameter_element(0)
+        if first_parameter is None:
+            self.fail('First action has no first parameter')
+        first_parameter.type_parameter('george.jetson@spacely.zz')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rules = Rule.objects.filter(name='Test Rule 1')
+        self.assertEqual(1, len(rules))
+        rule_actions = RuleActions.objects.filter(rule=rules[0])
+        self.assertEqual(rule_actions[0].action.name, 'Send Email')
+        parameters = RuleActionParameters.objects.filter(rule_action=rule_actions[0])
+        self.assertEqual(parameters.count(), 1)
+        self.assertEqual(parameters[0].parameter_value, 'george.jetson@spacely.zz')
 
 class ClientTestsPopulatedDB(StaticLiveServerTestCase):
     """ Test the interface used by an end user.
@@ -335,7 +374,6 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """
         super().setUpClass()
         options = FirefoxOptions()
-        #options.add_argument('-headless')
         options.add_argument('-purgecaches')
         cls.selenium = Firefox(options=options)
 
@@ -695,3 +733,36 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
             self.fail('Action component 2 does not exist')
         self.assertEqual(action_three.get_action_number(), 3,
                          'third action should be 3')
+
+    def test_clear_optional_parameter(self):
+        """ Verify that when an optional parameter value is cleared, its
+            associated record in the database is deleted.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_rule(0)
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        parameter_set = action_one.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('First action has no visible parameter component')
+        parameter = parameter_set.get_parameter_element(1)
+        if parameter is None:
+            self.fail('First action has no second parameter')
+        parameter.type_parameter('')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_actions = RuleActions.objects.filter(rule=1)
+        self.assertEqual(rule_actions[0].action.name, 'Send Email')
+        parameters = RuleActionParameters.objects.filter(rule_action=rule_actions[0])
+        self.assertEqual(parameters.count(), 1)
+        self.assertEqual(parameters[0].parameter_value, 'george.jetson@spacely.zz')

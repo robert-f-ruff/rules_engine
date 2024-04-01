@@ -61,8 +61,19 @@ class RuleActionParametersForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs) -> None:
+        """ This function executes when the form is created.
+        """
         super().__init__(*args, **kwargs)
         self.fields['parameter_value'] = self.instance.parameter.form_control
+
+    def clean(self):
+        """ This function executes when the form is cleaned.
+        """
+        super().clean()
+        if 'parameter_value' in self.cleaned_data:
+            if self.cleaned_data['parameter_value'] == '':
+                self.cleaned_data['DELETE'] = True
+        return self.cleaned_data
 
 
 class BaseRuleActionParametersFormSet(BaseInlineFormSet):
@@ -120,14 +131,18 @@ class ActionParameterForm(Form):
         """ This function will save the data stored in this form.
         """
         for number in range(1, self.cleaned_data[self._parameter_count] + 1):
+            id_number = number
+            while (self._prefix + 'parameter_name-' + str(id_number)) not in self.cleaned_data:
+                id_number += 1
             name = self.cleaned_data[self._prefix + 'parameter_name-'
-                                     + str(number)]
+                                     + str(id_number)]
             parameter = Parameter.objects.get(pk=name)
             parameter_value = self.cleaned_data[self._prefix
-                                            + 'parameter_value-' + str(number)]
-            rule_action_parameter = RuleActionParameters(
-                rule_action=rule_action,
-                parameter=parameter,
-                parameter_value=parameter_value
-            )
-            rule_action_parameter.save()
+                                            + 'parameter_value-' + str(id_number)]
+            if parameter_value != "":
+                rule_action_parameter = RuleActionParameters(
+                    rule_action=rule_action,
+                    parameter=parameter,
+                    parameter_value=parameter_value
+                )
+                rule_action_parameter.save()
