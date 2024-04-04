@@ -131,3 +131,4 @@ dmypy.json
 .vscode/settings.json
 
 rules_engine/web_server/static/
+rules_engine/docker.env
