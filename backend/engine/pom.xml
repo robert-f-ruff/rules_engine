@@ -16,14 +16,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>21</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
-
-  <parent>
-    <groupId>io.github.robert_f_ruff</groupId>
-    <artifactId>rules_engine</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
 
   <dependencies>
     <dependency>
@@ -151,6 +145,17 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>3.6.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <configuration>
+            <archive>
+              <manifestEntries>
+                <Logging-Profile>Rules Engine</Logging-Profile>
+              </manifestEntries>
+            </archive>
+          </configuration>
         </plugin>
     </plugins>
   </build>

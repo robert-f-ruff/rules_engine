@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mysql:8.3.0
+    container_name: database_service
+    volumes:
+      - type: bind
+        source: ./rules_dump.sql
+        target: /docker-entrypoint-initdb.d/rules_dump.sql
+        read_only: true
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE: rules
+      MYSQL_USER: rules
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+  email:
+    image: axigen/axigen:latest
+    container_name: email_service
+    ports:
+      - 443:443
+      - 9443:9443
+    volumes:
+      - mail-data:/axigen/var
+  backend:
+    build: .
+    container_name: backend_service
+    depends_on:
+      - db
+      - email
+    env_file:
+      - docker.env
+    secrets:
+      - wildfly_configuration
+
+secrets:
+  db_password:
+    file: db_password.txt
+  db_root_password:
+    file: db_root_password.txt
+  wildfly_configuration:
+    file: wildfly_configuration.txt
+
+volumes:
+  mail-data:

@@ -16,7 +16,7 @@ import jakarta.mail.internet.InternetAddress;
  */
 @ApplicationScoped
 public class ActionFactory {
-  @Resource(mappedName = "java:jboss/mail/MyOtherMail")
+  @Resource(mappedName = "java:jboss/mail/RulesMail")
   private Session session;
   private InternetAddress fromAddress;
 
