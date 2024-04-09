@@ -7,13 +7,22 @@ WORKDIR /build
 ADD https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-8.3.0.zip .
 
 RUN apt-get update -y \
-    && apt-get install -y zip
+    && apt-get install -y zip \
+    && apt-get install -y gettext
 
 RUN unzip *
 
 RUN --mount=type=bind,source=pom.xml,target=pom.xml \
     --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -DskipTests
+
+COPY wildfly_configure.sh /build/
+
+RUN --mount=type=bind,source=db_user.txt,target=db_user.txt \
+    --mount=type=bind,source=db_password.txt,target=db_password.txt \
+    --mount=type=bind,source=wildfly_configuration.txt,target=wildfly_configuration.txt \
+    --mount=type=bind,source=standalone.xml.tmpl,target=standalone.xml.tmpl \
+    /build/wildfly_configure.sh
 
 FROM deps as package
 
@@ -28,14 +37,13 @@ RUN --mount=type=bind,source=pom.xml,target=pom.xml \
 FROM bitnami/wildfly:31.0.1 as final
 
 COPY --from=deps /build/mysql-connector-j-8.3.0/mysql-connector-j-8.3.0.jar /app/
+COPY --from=deps /build/standalone.xml /opt/bitnami/wildfly/standalone/configuration/
 COPY --from=package /build/target/engine-1.0-SNAPSHOT.war /app/
 COPY initialize.sh /build/
-COPY standalone.xml.tmpl /build/
 
 USER root
 
 RUN apt-get update -y \
-    && apt-get install -y gettext \
     && apt-get install -y default-mysql-client
 
 USER 1001

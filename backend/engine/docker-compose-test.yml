@@ -10,11 +10,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
       MYSQL_DATABASE: rules
-      MYSQL_USER: rules
+      MYSQL_USER_FILE: /run/secrets/db_user
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
     secrets:
       - db_root_password
       - db_password
+      - db_user
   email:
     image: axigen/axigen:latest
     container_name: email_service
@@ -32,15 +33,16 @@ services:
     env_file:
       - docker.env
     secrets:
-      - wildfly_configuration
+      - db_password
+      - db_user
 
 secrets:
   db_password:
     file: db_password.txt
   db_root_password:
     file: db_root_password.txt
-  wildfly_configuration:
-    file: wildfly_configuration.txt
+  db_user:
+    file: db_user.txt
 
 volumes:
   mail-data:
