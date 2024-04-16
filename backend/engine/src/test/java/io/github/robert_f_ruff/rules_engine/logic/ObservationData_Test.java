@@ -15,6 +15,13 @@ import io.github.robert_f_ruff.rules_engine.logic.PatientData.Gender;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ObservationData_Test {
   @Test
+  void test_Null_Constructor() {
+    ObservationData object1 = new ObservationData();
+    assertEquals(new BigDecimal(0), object1.getBloodGlucose());
+    assertEquals(new BigDecimal(0), object1.getBodyWeight());
+  }
+  
+  @Test
   void test_toString_Method() {
     ObservationData object1 = new ObservationData(new BigDecimal(150), new BigDecimal(100));
     assertEquals("ObservationData [weight=150, glucose=100]", object1.toString());

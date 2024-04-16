@@ -15,7 +15,7 @@ public class Criterion {
 	private Logic logicClass;
 	private String logicMethodName;
 	private String checkValue;
-	private boolean evaluated = false;
+	private boolean evaluated;
 	private boolean result;
 	
 	/**
@@ -51,6 +51,14 @@ public class Criterion {
 		if (! evaluated) throw new CriterionNotEvaluatedException(this.name);
 		return result;
 	}
+
+	/**
+	 * Enables this criterion to process new data.
+	 * @since 1.0
+	 */
+	public void reset() {
+		evaluated = false;
+	}
 	
 	/**
 	 * New instance of Criterion.
@@ -67,6 +75,7 @@ public class Criterion {
 		this.logicClass = logicClass;
 		this.logicMethodName = logicMethodName;
 		this.checkValue = checkValue;
+		this.evaluated = false;
 	}
 	
 	/**

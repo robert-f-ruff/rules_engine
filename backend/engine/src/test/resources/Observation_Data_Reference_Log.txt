@@ -1,0 +1,10 @@
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Engine start: Raw data type is io.github.robert_f_ruff.rules_engine.logic.ObservationData
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Evaluating criteria:
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Criterion Age Greater Than 40 is not compatible
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Criterion Patient Is Female is not compatible
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Criterion Body Weight Greater Than 200 is false
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Criterion Blood Glucose Less Than 100 is true
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Evaluating rules:
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Skipping rule Sample Rule #1; Criterion Age Greater Than 40 is not evaluated
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Skipping rule Sample Rule #2; Criterion Age Greater Than 40 is not evaluated
+19:28:10,647 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Rule Sample Rule #3 is applicable

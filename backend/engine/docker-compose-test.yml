@@ -24,14 +24,16 @@ services:
       - 9443:9443
     volumes:
       - mail-data:/axigen/var
-  backend:
+  backend_service:
     build: .
-    container_name: backend_service
     depends_on:
       - db
       - email
     env_file:
       - docker.env
+    ports:
+      - 8080:8080
+      - 9990:9990
     secrets:
       - db_password
       - db_user
@@ -46,3 +48,4 @@ secrets:
 
 volumes:
   mail-data:
+    external: true

@@ -298,6 +298,14 @@ class RuleRepository_Test {
     HashMap<Long, Rule> firstRules = repository.getRules();
     assertEquals(1, firstCriteria.size());
     assertEquals(1, firstRules.size());
+    ArrayList<Criterion> firstCriteriaReference = new ArrayList<>();
+    for (Criterion criterion : firstCriteria) {
+        firstCriteriaReference.add(criterion);
+    }
+    HashMap<Long, Rule> firstRulesReference = new HashMap<>();
+    for (Long id : firstRules.keySet()) {
+        firstRulesReference.put(id, firstRules.get(id));
+    }
     ruleCriteria.clear();
     ruleActions.clear();
     ruleCriteria.add(aRuleCriterionRecord()
@@ -324,10 +332,10 @@ class RuleRepository_Test {
     HashMap<Long, Rule> secondRules = repository.getRules();
     assertEquals(2, secondCriteria.size());
     assertEquals(2, secondRules.size());
-    for (Criterion criterion : firstCriteria) {
+    for (Criterion criterion : firstCriteriaReference) {
         assertFalse(secondCriteria.contains(criterion));
     }
-    for (Rule rule : firstRules.values()) {
+    for (Rule rule : firstRulesReference.values()) {
         assertFalse(secondRules.containsValue(rule));
     }
   }

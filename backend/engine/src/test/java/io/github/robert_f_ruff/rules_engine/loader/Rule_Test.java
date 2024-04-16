@@ -46,13 +46,6 @@ class Rule_Test {
   }
 
   @Test
-  void test_No_Criteria() {
-    Rule rule1 = new Rule(1L, "Rule #1");
-    Exception exception = assertThrows(CriterionNotEvaluatedException.class, () -> rule1.getApplicable());
-    assertEquals("No criteria defined", exception.getMessage());
-  }
-
-  @Test
   void test_Criterion_Not_Evaluated() throws LogicFactoryException, LogicCriterionException, LogicDataTypeException {
     Logic patientLogic = LogicFactory.createInstance("Patient");
     Criterion patientIsFemale = new Criterion("Patient is female", patientLogic, "IsFemale", "");
@@ -63,7 +56,7 @@ class Rule_Test {
     PatientData patient1 = new PatientData(Gender.FEMALE, "1994-03-23");
     patientIsFemale.evaluate(patient1);
     Exception exception = assertThrows(CriterionNotEvaluatedException.class, () -> rule1.getApplicable());
-    assertEquals("Patient older than 22", exception.getMessage());
+    assertEquals("Criterion Patient older than 22 is not evaluated", exception.getMessage());
   }
 
   @Test

@@ -76,7 +76,7 @@
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:8.0">
             <console-handler name="CONSOLE">
-                <level name="INFO"/>
+                <level name="DEBUG"/>
                 <formatter>
                     <named-formatter name="COLOR-PATTERN"/>
                 </formatter>
@@ -104,6 +104,9 @@
             <logger category="sun.rmi">
                 <level name="WARN"/>
             </logger>
+            <logger category="io.github.robert_f_ruff.rules_engine">
+                <level name="DEBUG"/>
+            </logger>
             <root-logger>
                 <level name="INFO"/>
                 <handlers>
@@ -117,24 +120,6 @@
             <formatter name="COLOR-PATTERN">
                 <pattern-formatter pattern="%K{level}%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"/>
             </formatter>
-            <logging-profiles>
-                <logging-profile name="Rules Engine">
-                    <periodic-rotating-file-handler name="FILE">
-                        <level name="ALL"/>
-                        <file relative-to="jboss.server.log.dir" path="rules_engine.txt"/>
-                        <suffix value=".yyyy-MM-dd"/>
-                    </periodic-rotating-file-handler>
-                    <root-logger>
-                        <level name="FINEST"/>
-                        <handlers>
-                            <handler name="FILE"/>
-                        </handlers>
-                    </root-logger>
-                    <formatter name="PATTERN">
-                        <pattern-formatter pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"/>
-                    </formatter>
-                </logging-profile>
-            </logging-profiles>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:batch-jberet:3.0">
             <default-job-repository name="in-memory"/>
@@ -540,10 +525,10 @@
     </profile>
     <interfaces>
         <interface name="management">
-            <inet-address value="${jboss.bind.address.management:127.0.0.1}"/>
+            <any-address/>
         </interface>
         <interface name="public">
-            <inet-address value="${jboss.bind.address:127.0.0.1}"/>
+            <any-address/>
         </interface>
     </interfaces>
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">

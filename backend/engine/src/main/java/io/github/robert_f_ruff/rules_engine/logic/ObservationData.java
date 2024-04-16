@@ -46,6 +46,15 @@ public class ObservationData {
   }
 
   /**
+   * New instance of Observation Data.
+   * @since 1.0
+   */
+  public ObservationData() {
+    this.weight = new BigDecimal(0);
+    this.glucose = new BigDecimal(0);
+  }
+
+  /**
    * Indicates whether some other object is "equal to" this one.
    * @param o The object instance to compare to this instance
    * @return Whether the comparison object instance is equal to this instance

@@ -57,20 +57,20 @@ public class Engine {
 	 */
 	public void run(Object rawData) {
 		status = Status.RUNNING;
-		logger.fine("Engine start");
+		logger.fine("Engine start: Raw data type is " + rawData.getClass().getName());
 		ArrayList<Criterion> criteria = repository.getCriteria();
-		logger.fine("Processing criteria:");
+		logger.fine("Evaluating criteria:");
 		criteria.stream().forEach(criterion -> {
 			try {
-				logger.fine("Criterion " + criterion.getName());
 				criterion.evaluate(rawData);
-			} catch (LogicCriterionException e) {
+				logger.fine("Criterion " + criterion.getName() + " is " + criterion.getResult());
+			} catch (LogicCriterionException | CriterionNotEvaluatedException e) {
 				logger.severe(e.getMessage());
 			} catch (LogicDataTypeException e) {
-				logger.fine("Criterion " + criterion.getName() + " is not compatible with data type " + rawData.getClass().getName());
+				logger.fine("Criterion " + criterion.getName() + " is not compatible");
 			}
 		});
-		logger.fine("Evaluating rules");
+		logger.fine("Evaluating rules:");
 		HashMap<Long, Rule> rules = repository.getRules();
 		rules.values().stream().forEach(rule -> {
 			try {
@@ -85,7 +85,7 @@ public class Engine {
 					logger.fine("Rule " + rule.getName() + " is not applicable");
 				}
 			} catch (CriterionNotEvaluatedException e) {
-				logger.warning("Skipping rule " + rule.getName() + " as criterion " + e.getMessage() + " is not evaluated");
+				logger.fine("Skipping rule " + rule.getName() + "; " + e.getMessage());
 			}
 		});
 		status = Status.IDLE;

@@ -30,7 +30,6 @@ public class ActionFactory {
    * @return An instance of the class implementing the Action interface
    * @since 1.0
    * @throws ActionFactoryException Invalid class name
-   * @throws ActionException 
    */
   public Action createInstance(String type) throws ActionFactoryException {
     if (type.equals("SendEmail")) {

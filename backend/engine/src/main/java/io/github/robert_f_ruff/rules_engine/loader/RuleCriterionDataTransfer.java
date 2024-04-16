@@ -79,8 +79,8 @@ public class RuleCriterionDataTransfer {
    * @param criterionLogic The logic for this criterion, formatted as
    *     {@code ClassName.methodName=checkValue}, where {@code ClassName} is the name of the class
    *     implementing the Logic interface, {@code methodName} is the name of the method to execute
-   *     when this criterion is evaluated, and {@code checkValue} is an optional value passed that
-   *     is passed to {@code methodName} for use in comparison
+   *     when this criterion is evaluated, and {@code checkValue} is an optional value passed to
+   *     {@code methodName} for use in comparison
    * @since 1.0
    */
   RuleCriterionDataTransfer(Long ruleId, String ruleName, String criterionName,

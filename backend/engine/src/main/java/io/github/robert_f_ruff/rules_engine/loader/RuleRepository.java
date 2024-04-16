@@ -30,12 +30,10 @@ import jakarta.persistence.PersistenceContext;
 public class RuleRepository {
 	@PersistenceContext(unitName = "rules_data")
 	private EntityManager em;
-	private List<RuleCriterionDataTransfer> ruleCriteriaRecords;
-	private List<RuleActionDataTransfer> ruleActionRecords;
 	private HashMap<Long, Rule> rules;
 	private ArrayList<Criterion> criteria;
 	private ActionFactory actionFactory;
-	private HashMap<RuleIdActionSequence, Action> actions;
+	private Logger logger;
 	
 	/**
 	 * Returns the criteria set.
@@ -43,7 +41,10 @@ public class RuleRepository {
    * @since 1.0
 	 */
 	public ArrayList<Criterion> getCriteria() {
-		return new ArrayList<>(criteria);
+		for (Criterion criterion : criteria) {
+			criterion.reset();
+		}
+		return criteria;
 	}
 
 	/**
@@ -52,7 +53,7 @@ public class RuleRepository {
    * @since 1.0
 	 */
 	public HashMap<Long, Rule> getRules() {
-		return new HashMap<>(rules);
+		return rules;
 	}
 
 	/**
@@ -62,21 +63,18 @@ public class RuleRepository {
 	public void reloadRules() {
 		rules.clear();
 		criteria.clear();
-		actions.clear();
 		loadRules();
 	}
 
 	@PostConstruct
 	private void loadRules() {
-		Logger logger = Logger.getLogger(this.getClass().getName());
-
-		logger.fine("  Retrieving rule records from data source");
-		ruleCriteriaRecords = em.createNamedQuery("RuleCriteria", RuleCriterionDataTransfer.class)
-				.getResultList();
-		ruleActionRecords = em.createNamedQuery("RuleActions", RuleActionDataTransfer.class)
-				.getResultList();
+		logger.fine("Retrieving rule records from data source");
+		List<RuleCriterionDataTransfer> ruleCriteriaRecords = 
+				em.createNamedQuery("RuleCriteria", RuleCriterionDataTransfer.class).getResultList();
+		List<RuleActionDataTransfer> ruleActionRecords =
+				em.createNamedQuery("RuleActions", RuleActionDataTransfer.class).getResultList();
 		
-		logger.fine("  Processing returned rule criteria records");
+		logger.fine("Processing returned rule criteria records:");
 		HashMap<Criterion, List<Rule>> criterionMap = new HashMap<>();
 		ruleCriteriaRecords.stream().forEach(record -> {
 			logger.fine("  Processing record " + record);
@@ -109,7 +107,8 @@ public class RuleRepository {
 			}
 			logger.fine("  -------");
 		});
-		logger.fine("  Processing returned rule action records");
+		logger.fine("Processing returned rule action records:");
+		HashMap<RuleIdActionSequence, Action> actions = new HashMap<>();
 		ArrayList<Long> invalidRules = new ArrayList<>();
 		ruleActionRecords.stream().forEach((record) -> {
 			logger.fine("  Processing record " + record);
@@ -138,7 +137,7 @@ public class RuleRepository {
 			}
 			logger.fine("  -------");
 		});
-		logger.fine("  Validating rule set");
+		logger.fine("Validating rule set");
 		Iterator<Map.Entry<Long, Rule>> entries = rules.entrySet().iterator();
 		while (entries.hasNext()) {
 			Map.Entry<Long, Rule> entry = entries.next();
@@ -164,7 +163,7 @@ public class RuleRepository {
 				continue;
 			}
 		}
-		logger.fine("  Validating set of criteria");
+		logger.fine("Validating set of criteria");
 		Iterator<Map.Entry<Criterion, List<Rule>>> criterion = criterionMap.entrySet().iterator();
 		while (criterion.hasNext()) {
 			Map.Entry<Criterion, List<Rule>> entry = criterion.next();
@@ -209,8 +208,8 @@ public class RuleRepository {
 	 */
 	public RuleRepository() {
 		this.actionFactory = null;
-		rules = new HashMap<>();
-		criteria = new ArrayList<>();
-		actions = new HashMap<>();
+		this.rules = new HashMap<>();
+		this.criteria = new ArrayList<>();
+		this.logger = Logger.getLogger(this.getClass().getName());
 	}
 }

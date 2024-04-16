@@ -86,8 +86,6 @@ public class Rule {
 	 * @throws CriterionNotEvaluatedException Criterion is not yet evaluated
 	 */
 	public boolean getApplicable() throws CriterionNotEvaluatedException {
-		if (criteria.size() == 0) throw new CriterionNotEvaluatedException("No criteria defined");
-
 		boolean applicable = false;
 		// AND all criteria together
 		for (Criterion criterion : criteria) {

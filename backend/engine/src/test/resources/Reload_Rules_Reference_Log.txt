@@ -1,0 +1,35 @@
+19:36:34,279 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Retrieving rule records from data source
+19:36:34,291 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Processing returned rule criteria records:
+19:36:34,291 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=1, ruleName=Sample Rule #1, criterionName=Age Greater Than 40, criterionLogic=Patient]
+19:36:34,291 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Creating new rule
+19:36:34,291 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
+19:36:34,291 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=1, ruleName=Sample Rule #1, criterionName=Patient Is Female, criterionLogic=Patient]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Retrieving existing rule
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=2, ruleName=Sample Rule #2, criterionName=Age Greater Than 40, criterionLogic=Patient]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Creating new rule
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Retrieving criterion from collection
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=2, ruleName=Sample Rule #2, criterionName=Body Weight Greater Than 200, criterionLogic=Observation]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Retrieving existing rule
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=3, ruleName=Sample Rule #3, criterionName=Blood Glucose Less Than 100, criterionLogic=Observation]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Creating new rule
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Processing returned rule action records:
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleActionDataTransfer [ruleId=1, actionSequenceNumber=1, actionName=Send Email, actionFunction=SendEmail, parameterName=Send Email to, parameterValue=george.jetson@acme.com]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleActionDataTransfer [ruleId=2, actionSequenceNumber=1, actionName=Send Email, actionFunction=SendEmail, parameterName=Send Email to, parameterValue=george.jetson@acme.com]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleActionDataTransfer [ruleId=2, actionSequenceNumber=1, actionName=Send Email, actionFunction=SendEmail, parameterName=Copy Email to, parameterValue=rosie.robot@acme.com]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleActionDataTransfer [ruleId=3, actionSequenceNumber=1, actionName=Send Email, actionFunction=SendEmail, parameterName=Send Email to, parameterValue=george.jetson@acme.com]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleActionDataTransfer [ruleId=3, actionSequenceNumber=2, actionName=Send Email, actionFunction=SendEmail, parameterName=Send Email to, parameterValue=rosie.robot@acme.com]
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Validating rule set
+19:36:34,292 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Validating set of criteria

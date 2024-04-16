@@ -63,7 +63,7 @@ public class Criterion_Test {
   @Test
   void test_CriterionNotEvaluatedException() {
     Exception exception = assertThrows(CriterionNotEvaluatedException.class, () -> criterion.getResult());
-    assertEquals("Patient is female", exception.getMessage());
+    assertEquals("Criterion Patient is female is not evaluated", exception.getMessage());
   }
 
   @Test

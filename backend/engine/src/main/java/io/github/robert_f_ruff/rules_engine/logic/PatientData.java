@@ -64,6 +64,15 @@ public class PatientData {
   }
 
   /**
+   * New instance of PatientData.
+   * @since 1.0
+   */
+  public PatientData() {
+    this.gender = Gender.MALE;
+    this.birthDate = LocalDate.now().plusDays(-1);
+  }
+
+  /**
    * Indicates whether some other object is "equal to" this one.
    * @param o The object instance to compare to this instance
    * @return Whether the comparison object instance is equal to this instance

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -14,6 +15,13 @@ import io.github.robert_f_ruff.rules_engine.logic.PatientData.Gender;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PatientData_Test {
+  @Test
+  void test_Null_Constructor() {
+    PatientData object1 = new PatientData();
+    assertEquals(PatientData.Gender.MALE, object1.getGender());
+    assertEquals(LocalDate.now().plusDays(-1), object1.getBirthDate());
+  }
+  
   @Test
   void test_toString_Method() {
     PatientData object1 = new PatientData(Gender.FEMALE, "1999-04-15");
