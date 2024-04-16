@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.12.2
+FROM python:3.12.3
 
 WORKDIR /app
 
 RUN apt-get update -y \
-    && apt-get install -y python3-dev default-libmysqlclient-dev build-essential
+    && apt-get install -y python3-dev default-libmysqlclient-dev build-essential pkg-config
 RUN pip3 install --upgrade pip
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
