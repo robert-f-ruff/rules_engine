@@ -1,4 +1,6 @@
 """Define the index.html page object model."""
+import re
+import selenium.common.exceptions
 from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
 from .base import BasePage, WrongPageError
@@ -32,11 +34,11 @@ class IndexPage(BasePage):
         return page_header.text
 
     def get_no_rules_message(self) -> str:
-        """ This function returns the text in the first <p> tag if there are
+        """ This function returns the text that should appear if there are
             no rules on the page.
         """
         if len(self._rules) == 0:
-            return self._driver.find_element(by=By.TAG_NAME, value='p').text
+            return self._driver.find_element(by=By.ID, value='no_rules_message').text
         return ''
 
     def get_rule(self, index: int) -> str:
@@ -44,6 +46,52 @@ class IndexPage(BasePage):
         if index < len(self._rules):
             return self._rules[index][0].text
         return ''
+
+    def get_engine_status_area_color(self) -> str:
+        """ This function returns the background color of the engine status box.
+        """
+        classes = self._driver.find_element(by=By.ID,
+                                            value='engine_status_area').get_attribute('class')
+        if classes is not None:
+            if re.search(r'\balert-danger\b', classes):
+                return 'red'
+            if re.search(r'\balert-success\b', classes):
+                return 'green'
+        return ''
+
+    def get_engine_status(self) -> str:
+        """ This function returns the engine status displayed on the page.
+        """
+        return self._driver.find_element(by=By.ID, value='engine_status').text
+
+    def get_reload_status(self) -> str:
+        """ This function returns the engine reload status displayed on the page.
+        """
+        try:
+            return self._driver.find_element(by=By.ID, value='reload_status').text
+        except selenium.common.exceptions.NoSuchElementException:
+            return ''
+
+    def click_reload_ruleset(self) -> None:
+        """ This function clicks on the Reload Ruleset button.
+        """
+        reload_button = self._driver.find_element(by=By.ID, value='reload_button')
+        reload_button.click()
+
+    def get_reload_button_visible(self) -> bool:
+        """ This function returns when the Reload Ruleset button is visible on the page
+        """
+        try:
+            reload_button = self._driver.find_element(by=By.ID, value='reload_button')
+            if reload_button is not None:
+                classes = reload_button.get_attribute('class')
+                if classes is not None:
+                    match = re.search(r'\bd-none\b', classes)
+                    if not match:
+                        return True
+        except selenium.common.exceptions.NoSuchElementException:
+            pass
+        return False
 
     def click_rule(self, index: int) -> None:
         """ This function clicks on the specified rule link."""

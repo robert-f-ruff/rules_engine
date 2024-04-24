@@ -53,12 +53,6 @@ async function parseParameters(location, action_number) {
     parameter_area.innerHTML = form_code.parameter_form;
 }
 
-function hideControl(element) {
-    let element_class = element.getAttribute("class");
-    element_class = element_class + " d-none";
-    element.setAttribute("class", element_class);
-}
-
 function showControl(element) {
     let element_class = element.getAttribute("class").replace(/ d[-]none/, "");
     element.setAttribute("class", element_class)

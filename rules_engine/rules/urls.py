@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:rule_id>/', views.RuleView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.RuleDeleteView.as_view(), name='delete'),
     path('parameters/<str:action_name>/', views.parameters, name='action_parameters'),
+    path('engine/reload/', views.engine_reload, name='engine_reload'),
 ]

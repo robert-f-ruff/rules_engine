@@ -1,6 +1,9 @@
 """Define the views used by the rules engine."""
 from typing import Any
-from django.http import HttpResponseNotAllowed, JsonResponse, HttpRequest
+import os
+import requests
+from django.http import (HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect,
+                         JsonResponse, HttpRequest)
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -23,6 +26,27 @@ class IndexView(generic.ListView):
         """
         return Rule.objects.order_by('name')
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """ This function adds additional data to the context for use
+            in the template.
+        """
+        context = super().get_context_data(**kwargs)
+        status = call_engine_api('status')
+        reload = {}
+        reload['engine_response_status_reload'] = (
+                self.request.session.pop('engine_response_status_reload','OK')
+        )
+        if (status['engine_response_status_status'] != 'OK'
+            or reload['engine_response_status_reload'] != 'OK'):
+            context['engine_alert'] = True
+        else:
+            context['engine_alert'] = False
+        context['engine_status_text_status']=status['engine_status_text_status']
+        context['engine_status_text_reload'] = (
+                self.request.session.pop('engine_status_text_reload', '')
+        )
+        return context
+
 
 class RuleDeleteView(generic.edit.DeleteView):
     """ This view allows the user to delete a rule. It shows a confirmation
@@ -31,6 +55,14 @@ class RuleDeleteView(generic.edit.DeleteView):
     model = Rule
     context_object_name = 'rule'
     success_url = reverse_lazy('rules:index')
+
+    def form_valid(self, form) -> HttpResponseRedirect:
+        """ This function is called when a record in the database is deleted.
+        """
+        call_status = call_engine_api('reload')
+        for key in call_status:
+            self.request.session[key] = call_status.get(key)
+        return super().form_valid(form) # type: ignore
 
 
 class RuleView(View):
@@ -49,7 +81,7 @@ class RuleView(View):
         self.parameter_forms = []
         self.forms_to_save = {'form_sets': [], 'forms': []}
 
-    def get(self, request: HttpRequest, *args, rule_id=0, **kwargs):
+    def get(self, request: HttpRequest, *args, rule_id=0, **kwargs) -> HttpResponse:
         """ This function responds to the HTTP GET command.
         """
         if rule_id > 0:
@@ -73,10 +105,12 @@ class RuleView(View):
                 self.parameter_forms.append(None)
         return render(request, self.template_name, self.get_context_data())
 
-    def post(self, request: HttpRequest, *args, rule_id=0, **kwargs):
+    def post(self, request: HttpRequest, *args, rule_id=0, **kwargs) -> (
+            HttpResponseRedirect | HttpResponse):
         """ This function responds to the HTTP POST command.
         """
         all_pass = True
+        modified = False
         if rule_id > 0:
             self.rule = get_object_or_404(Rule, pk=rule_id)
         self.set_template_name()
@@ -85,9 +119,13 @@ class RuleView(View):
                                                        instance=self.rule_form.instance)
         if not self.rule_form.is_valid() or not self.rule_actions_formset.is_valid():
             all_pass = False
+        else:
+            modified = self.rule_form.has_changed()
         ruleactions_form_count = int(request.POST.get('ruleactions_set-TOTAL_FORMS','0'))
         for form_id in range(0, ruleactions_form_count):
             rule_action_form = self.rule_actions_formset[form_id]
+            if not modified:
+                modified = rule_action_form.has_changed()
             if request.POST.get('ruleactions_set-' + str(form_id) + '-id', '') != '':
                 formset = ActionParametersFormSet(data=request.POST,
                             instance=rule_action_form.instance,
@@ -104,6 +142,8 @@ class RuleView(View):
                     else:
                         self.forms_to_save['form_sets'].append(
                                                         self.parameter_formsets.index(formset))
+                        if not modified:
+                            modified = formset.has_changed()
             else:
                 self.parameter_formsets.append(None)
             if int(request.POST.get(ActionParameterForm.get_prefix(form_id)
@@ -121,6 +161,8 @@ class RuleView(View):
                     all_pass = False
                 else:
                     self.forms_to_save['forms'].append(self.parameter_forms.index(parameter_form))
+                    if not modified:
+                        modified = parameter_form.has_changed()
             else:
                 self.parameter_forms.append(None)
         if all_pass:
@@ -132,10 +174,14 @@ class RuleView(View):
                 parameter_form = self.parameter_forms[index]
                 rule_action_form = self.rule_actions_formset[index]
                 parameter_form.save(rule_action_form.instance)
+            if modified:
+                call_status = call_engine_api('reload')
+                for key in call_status:
+                    request.session[key] = call_status.get(key)
             return redirect('rules:index')
         return render(request, self.template_name, self.get_context_data())
 
-    def get_context_data(self):
+    def get_context_data(self) -> dict[str, Any]:
         """ This function returns the context dictionary with all the
             data needed by the template.
         """
@@ -160,7 +206,7 @@ class RuleView(View):
             context['rule_id'] = self.rule.pk
         return context
 
-    def set_template_name(self):
+    def set_template_name(self) -> None:
         """ This function will set the correct template name to render
             to the client.
         """
@@ -169,7 +215,8 @@ class RuleView(View):
         else:
             self.template_name = 'rules/rule_create.html'
 
-    def get_part_action_parameter_form(self, rule_action_form, data=None):
+    def get_part_action_parameter_form(self, rule_action_form, data=None) -> (
+            ActionParameterForm | None):
         """ This function will return a new parameter form containing just the
             parameters that do not exist in the database.
         """
@@ -184,10 +231,12 @@ class RuleView(View):
                     fields.append({'parameter': action_parameter.parameter,
                                 'parameter_number': action_parameter.parameter_number})
                 return ActionParameterForm(data, create_fields=fields,
-                    ruleaction_set_id=self.rule_actions_formset.forms.index(rule_action_form))
+                    ruleaction_set_id=
+                        self.rule_actions_formset.forms.index(rule_action_form) # type: ignore
+                )
         return None
 
-def parameters(request, action_name):
+def parameters(request, action_name) -> JsonResponse | HttpResponseNotAllowed:
     """ This function will return a JSON object containing the parameters
         for the requested action.
     """
@@ -205,6 +254,23 @@ def parameters(request, action_name):
         return JsonResponse({'parameter_form': rendered_form})
     return HttpResponseNotAllowed(['GET'])
 
+def engine_reload(request) -> JsonResponse | HttpResponseNotAllowed:
+    """ This function will call the engine status and ruleset reload APIs and return the
+        result in a JSON object.
+    """
+    if request.method == "GET":
+        status_data = call_engine_api('status')
+        data = {'engine_status_text_status': status_data['engine_status_text_status']}
+        reload_data = call_engine_api('reload')
+        data['engine_status_text_reload'] = reload_data['engine_status_text_reload']
+        if (status_data['engine_response_status_status'] != 'OK'
+            or reload_data['engine_response_status_reload'] != 'OK'):
+            data['engine_alert'] = 'True'
+        else:
+            data['engine_alert'] = 'False'
+        return JsonResponse(data=data)
+    return HttpResponseNotAllowed(['GET'])
+
 def get_action_parameter_form(action_name, ruleaction_set_id='',
                               data=None) -> ActionParameterForm:
     """ This function will return a fully functional ActionParameterForm.
@@ -217,3 +283,37 @@ def get_action_parameter_form(action_name, ruleaction_set_id='',
                        'parameter_number': action_parameter.parameter_number})
     return ActionParameterForm(data, create_fields=fields,
                                ruleaction_set_id=ruleaction_set_id)
+
+def call_engine_api(endpoint: str) -> dict[str, str]:
+    """ This function interacts with the backend engine via a REST API.
+    """
+    url = f"http://{os.environ['ENGINE_HOST']}/rules_engine/engine/{endpoint}"
+    data = {}
+    try:
+        response = None
+        if endpoint == 'reload':
+            response = requests.put(url, json={'accessCode': os.environ['ENGINE_RELOAD_KEY']},
+                                    timeout=10)
+        else:
+            response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data['engine_response_status_' + endpoint] = 'OK'
+            status = response.json()['status']
+            if endpoint == 'reload':
+                status = {
+                    'OK': 'Ruleset successfully reloaded',
+                    'FAILED': 'Ruleset was not reloaded',
+                }.get(status, status)
+            data['engine_status_text_' + endpoint] = status
+        else:
+            data['engine_response_status_' + endpoint] = (
+                                        f'Error Code {response.status_code}'
+            )
+            data['engine_status_text_' + endpoint] = response.reason
+    except requests.exceptions.ConnectionError as error:
+        data['engine_response_status_' + endpoint] = 'Connection Error'
+        data['engine_status_text_' + endpoint] = str(error).split('>: ')[1].split("'))")[0]
+    except requests.exceptions.RequestException as error:
+        data['engine_response_status_' + endpoint] = 'Request Error'
+        data['engine_status_text_' + endpoint] = str(error)
+    return data

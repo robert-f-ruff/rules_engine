@@ -1,6 +1,7 @@
 """Define tests that simulate an end user."""
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
+import requests_mock
 from selenium.webdriver import Firefox, FirefoxOptions
 from rules.models import Rule, RuleActions, RuleActionParameters
 from .pages.base import WrongPageError
@@ -29,6 +30,36 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """
         cls.selenium.quit()
         super().tearDownClass()
+
+    def test_red_engine_status_area(self):
+        """ Verify that the connection error is displayed.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            self.assertEqual(index_page.get_engine_status_area_color(), 'red')
+            self.assertEqual(index_page.get_engine_status(), 'Failed to establish a new connection:'
+                             + ' [Errno 61] Connection refused')
+            self.assertEqual(index_page.get_reload_status(), '')
+            self.assertFalse(index_page.get_reload_button_visible())
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+
+    def test_green_engine_status_area(self):
+        """ Verify that the IDLE status is displayed.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', status_code=200, reason='OK',
+                     json={'status': 'IDLE'})
+            self.selenium.get(self.live_server_url + reverse('rules:index'))
+            try:
+                index_page = IndexPage(page_driver=self.selenium)
+                self.assertEqual(index_page.get_engine_status_area_color(), 'green')
+                self.assertEqual(index_page.get_engine_status(), 'IDLE')
+                self.assertEqual(index_page.get_reload_status(), '')
+                self.assertFalse(index_page.get_reload_button_visible())
+            except WrongPageError as error:
+                self.fail('Wrong page address: ' + str(error))
 
     def test_no_rules_index(self):
         """ Verify the no rules message is displayed.
@@ -85,6 +116,139 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
             index_page = IndexPage(page_driver=self.selenium)
             self.assertEqual(index_page.get_rule(0), 'Test Rule 1',
                             'new rule appears in list of rules')
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+
+    def test_reload_ruleset_button_success(self):
+        """ Verify that when the Reload Ruleset button is pressed and the engine responds to
+            communications that the engine status area is properly updated.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_add_rule()
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_editor.type_name('Test Rule 1')
+        self.assertTrue(rule_editor.check_criterion('Is Pleasant'),
+                        'checking Is Pleasant criterion')
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        action_one.type_action_number('1')
+        action_one.select_action('Send Email')
+        parameter_set = action_one.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('First action has no visible parameter component')
+        first_parameter = parameter_set.get_parameter_element(0)
+        if first_parameter is None:
+            self.fail('First action has no first parameter')
+        first_parameter.type_parameter('george.jetson@spacely.zz')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            self.assertEqual(index_page.get_engine_status_area_color(), 'red')
+            self.assertEqual(index_page.get_engine_status(), 'Failed to establish a new connection:'
+                             + ' [Errno 61] Connection refused')
+            self.assertEqual(index_page.get_reload_status(), 'Failed to establish a new connection:'
+                                + ' [Errno 61] Connection refused')
+            self.assertTrue(index_page.get_reload_button_visible())
+            with requests_mock.Mocker() as mock:
+                mock.get('/rules_engine/engine/status', status_code=200, reason='OK',
+                        json={'status': 'IDLE'})
+                mock.put('/rules_engine/engine/reload', status_code=200, reason='OK',
+                        json={'status': 'OK'})
+                index_page.click_reload_ruleset()
+                self.assertEqual(index_page.get_engine_status_area_color(), 'green')
+                self.assertEqual(index_page.get_engine_status(), 'IDLE')
+                self.assertEqual(index_page.get_reload_status(), 'Ruleset successfully reloaded')
+                self.assertFalse(index_page.get_reload_button_visible())
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+
+    def test_reload_ruleset_button_failure(self):
+        """ Verify that when the Reload Ruleset button is pressed and the engine does not respond
+            to any communications that the engine status area remains the same.
+        """
+        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            index_page.click_add_rule()
+            rule_editor = RuleFormPage(page_driver=self.selenium)
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+        rule_editor.type_name('Test Rule 1')
+        self.assertTrue(rule_editor.check_criterion('Is Pleasant'),
+                        'checking Is Pleasant criterion')
+        action_one = rule_editor.get_action_component(0)
+        if action_one is None:
+            self.fail('Action component 0 does not exist')
+        action_one.type_action_number('1')
+        action_one.select_action('Send Email')
+        parameter_set = action_one.get_visible_parameter_component()
+        if parameter_set is None:
+            self.fail('First action has no visible parameter component')
+        first_parameter = parameter_set.get_parameter_element(0)
+        if first_parameter is None:
+            self.fail('First action has no first parameter')
+        first_parameter.type_parameter('george.jetson@spacely.zz')
+        message = rule_editor.click_submit_button()
+        self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            self.assertEqual(index_page.get_engine_status_area_color(), 'red')
+            self.assertEqual(index_page.get_reload_status(), 'Failed to establish a new connection'
+                                + ': [Errno 61] Connection refused')
+            self.assertTrue(index_page.get_reload_button_visible())
+            index_page.click_reload_ruleset()
+            self.assertEqual(index_page.get_engine_status_area_color(), 'red')
+            self.assertEqual(index_page.get_reload_status(), 'Failed to establish a new connection'
+                                + ': [Errno 61] Connection refused')
+            self.assertTrue(index_page.get_reload_button_visible())
+        except WrongPageError as error:
+            self.fail('Wrong page address: ' + str(error))
+
+    def test_reload_ruleset_button_partial_failure(self):
+        """ Verify that the engine status area is red when the engine status is returned but the
+            reload request failed.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', status_code=200, reason='OK',
+                     json={'status': 'IDLE'})
+            mock.put('/rules_engine/engine/reload', status_code=500,
+                     reason='Internal Server Error')
+            self.selenium.get(self.live_server_url + reverse('rules:index'))
+            try:
+                index_page = IndexPage(page_driver=self.selenium)
+                index_page.click_add_rule()
+                rule_editor = RuleFormPage(page_driver=self.selenium)
+            except WrongPageError as error:
+                self.fail('Wrong page address: ' + str(error))
+            rule_editor.type_name('Test Rule 1')
+            self.assertTrue(rule_editor.check_criterion('Is Pleasant'),
+                            'checking Is Pleasant criterion')
+            action_one = rule_editor.get_action_component(0)
+            if action_one is None:
+                self.fail('Action component 0 does not exist')
+            action_one.type_action_number('1')
+            action_one.select_action('Send Email')
+            parameter_set = action_one.get_visible_parameter_component()
+            if parameter_set is None:
+                self.fail('First action has no visible parameter component')
+            first_parameter = parameter_set.get_parameter_element(0)
+            if first_parameter is None:
+                self.fail('First action has no first parameter')
+            first_parameter.type_parameter('george.jetson@spacely.zz')
+            message = rule_editor.click_submit_button()
+            self.assertIsNone(message)
+        try:
+            index_page = IndexPage(page_driver=self.selenium)
+            self.assertEqual(index_page.get_engine_status_area_color(), 'red')
+            self.assertEqual(index_page.get_engine_status(), 'IDLE')
+            self.assertEqual(index_page.get_reload_status(), 'Internal Server Error')
+            self.assertTrue(index_page.get_reload_button_visible())
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
 

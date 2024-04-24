@@ -1,7 +1,11 @@
 """Define tests for the views."""
+import unittest
+import requests
+import requests_mock
 from django.test import TestCase
 from django.urls import reverse
 from rules.models import Rule, RuleActions, RuleActionParameters
+from rules.views import call_engine_api
 
 
 class ParametersViewTests(TestCase):
@@ -51,6 +55,127 @@ class ParametersViewTests(TestCase):
         self.assertEqual(response.json()['parameter_form'], '', 'view should not return a form')
 
 
+class EngineViewTests(TestCase):
+    """ Test the engine_reload() view function.
+    """
+    def test_invalid_http_method(self):
+        """ The engine reload view only responds to a certain type of HTTP
+            request method.
+        """
+        url = reverse('rules:engine_reload')
+        response = self.client.put(path=url, data={})
+        self.assertEqual(response.status_code, 405)
+
+    def test_valid_http_method(self):
+        """ The engine reload view only responds to a certain type of HTTP
+            request method.
+        """
+        url = reverse('rules:engine_reload')
+        response = self.client.get(path=url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_return_content_is_json(self):
+        """ The engine reload view should return data in the JSON format.
+        """
+        url = reverse('rules:engine_reload')
+        response = self.client.get(path=url)
+        self.assertEqual(response.headers['Content-Type'], 'application/json', # type: ignore
+                         'return data in JSON format')
+
+    def test_httpconnectionpool_error(self):
+        """ The engine API wrapper should handle HTTPConnectionPool connection exceptions.
+        """
+        url = reverse('rules:engine_reload')
+        response = self.client.get(path=url)
+        actual = response.json()
+        expected = {'engine_alert': 'True',
+                    'engine_status_text_status': 'Failed to establish a new connection: '
+                                                  + '[Errno 61] Connection refused',
+                    'engine_status_text_reload': 'Failed to establish a new connection: '
+                                                  + '[Errno 61] Connection refused',
+        }
+        self.assertEqual(expected, actual)
+
+
+class TestEngineAPI(unittest.TestCase):
+    """ Test the call_engine_api() function.
+    """
+    def test_non_200_response_code(self):
+        """ The engine API wrapper should handle all HTTP status codes that are not 200.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', status_code=500, reason='Internal Server Error')
+            actual = call_engine_api('status')
+            expected = {'engine_response_status_status': 'Error Code 500',
+                        'engine_status_text_status': 'Internal Server Error',
+            }
+            self.assertEqual(expected, actual)
+
+    def test_200_response_code_for_status(self):
+        """ The engine API wrapper should handle the HTTP status code 200 when calling the
+            status endpoint.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', status_code=200, reason='OK',
+                     json={'status': 'IDLE'})
+            actual = call_engine_api('status')
+            expected = {'engine_response_status_status': 'OK',
+                        'engine_status_text_status': 'IDLE',
+            }
+            self.assertEqual(expected, actual)
+
+    def test_200_response_code_for_reload_ok(self):
+        """ The engine API wrapper should handle the HTTP status code 200 when calling the
+            reload endpoint and the reload process was successful.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.put('/rules_engine/engine/reload', status_code=200, reason='OK',
+                     json={'status': 'OK'})
+            actual = call_engine_api('reload')
+            expected = {'engine_response_status_reload': 'OK',
+                        'engine_status_text_reload': 'Ruleset successfully reloaded',
+            }
+            self.assertEqual(expected, actual)
+
+    def test_200_response_code_for_reload_failed(self):
+        """ The engine API wrapper should handle the HTTP status code 200 when calling the
+            reload endpoint and the reload process was not successful.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.put('/rules_engine/engine/reload', status_code=200, reason='OK',
+                     json={'status': 'FAILED'})
+            actual = call_engine_api('reload')
+            expected = {'engine_response_status_reload': 'OK',
+                        'engine_status_text_reload': 'Ruleset was not reloaded',
+            }
+            self.assertEqual(expected, actual)
+
+    def test_200_response_code_for_reload_unexpected(self):
+        """ The engine API wrapper should handle the HTTP status code 200 when calling the
+            reload endpoint and the reload process returns an unexpected status.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.put('/rules_engine/engine/reload', status_code=200, reason='OK',
+                     json={'status': 'UNEXPECTED'})
+            actual = call_engine_api('reload')
+            expected = {'engine_response_status_reload': 'OK',
+                        'engine_status_text_reload': 'UNEXPECTED',
+            }
+            self.assertEqual(expected, actual)
+
+    def test_request_exception(self):
+        """ The engine API wrapper should handle RequestException that reqeusts may generate.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', exc=requests.exceptions.RequestException)
+            actual = call_engine_api('status')
+            expected = {
+                'engine_response_status_status': 'Request Error',
+                'engine_status_text_status': '',
+            }
+            self.assertEqual(expected, actual)
+
+
 class IndexViewTests(TestCase):
     """ Test the IndexView class.
     """
@@ -69,6 +194,16 @@ class IndexViewTests(TestCase):
         response = self.client.get(reverse('rules:index'))
         self.assertEqual(response.status_code, 200)
         self.assertQuerySetEqual(qs=response.context['rule_list'], values=[rule_one]) # type: ignore
+
+    def test_engine_status_display(self):
+        """ Test that the index page displays the rule engine's status.
+        """
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', status_code=200, reason='OK',
+                     json={'status': 'IDLE'})
+            response = self.client.get(reverse('rules:index'))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, '<p id="engine_status" class="mb-0">IDLE</p>')
 
 
 class RuleDeleteViewTests(TestCase):
