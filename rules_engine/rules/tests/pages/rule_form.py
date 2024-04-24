@@ -51,9 +51,11 @@ def move_send_keys(page_driver: Firefox, element: WebElement, text: str) -> None
         element.clear()
         element.send_keys(text)
     except ElementNotInteractableException:
-        prepare_to_click(page_driver, element.get_attribute('id'))
-        element.clear()
-        element.send_keys(text)
+        id_attribute = element.get_attribute('id')
+        if id_attribute is not None:
+            prepare_to_click(page_driver, id_attribute)
+            element.clear()
+            element.send_keys(text)
     time.sleep(2)
 
 def move_select(page_driver: Firefox, element: Select, element_id: str, item: str) -> None:
@@ -74,8 +76,10 @@ def move_click(page_driver: Firefox, element: WebElement) -> None:
     try:
         element.click()
     except ElementNotInteractableException:
-        prepare_to_click(page_driver, element.get_attribute('id'))
-        element.click()
+        element_id = element.get_attribute('id')
+        if element_id is not None:
+            prepare_to_click(page_driver, element_id)
+            element.click()
     time.sleep(2)
 
 
@@ -96,10 +100,12 @@ class ParameterElement():
         if control_name != '':
             self._parameter_input = page_driver.find_element(by=By.ID,
                                                              value=control_name)
-            if not re.search(r' d-none', self._parameter_input.get_attribute('class')):
-                label_location = locate_with(
-                    By.TAG_NAME, 'label').above(self._parameter_input) # type: ignore
-                self._parameter_label = page_driver.find_element(label_location) # type: ignore
+            classes = self._parameter_input.get_attribute('class')
+            if classes is not None:
+                if not re.search(r' d-none', classes):
+                    label_location = locate_with(
+                        By.TAG_NAME, 'label').above(self._parameter_input) # type: ignore
+                    self._parameter_label = page_driver.find_element(label_location) # type: ignore
             else:
                 self._parameter_label = None
             self._parameter_errors = parse_errors(
@@ -137,9 +143,11 @@ class ParameterElement():
     def get_visible(self) -> bool:
         """ This function returns whether the control is visible on the page."""
         if self._parameter_input is not None:
-            match = re.search(r' d-none', self._parameter_input.get_attribute('class'))
-            if not match:
-                return True
+            classes = self._parameter_input.get_attribute('class')
+            if classes is not None:
+                match = re.search(r' d-none', classes)
+                if not match:
+                    return True
         return False
 
 
@@ -208,7 +216,11 @@ class NewParameterComponent(ParameterComponent):
             try:
                 input_id = f'id_new_parameter_form-{str(action_instance)}-parameter_count'
                 parameter_count_input = self._driver.find_element(by=By.ID, value=input_id)
-                parameter_count = int(parameter_count_input.get_attribute('value'))
+                value = parameter_count_input.get_attribute('value')
+                if value is not None:
+                    parameter_count = int(value)
+                else:
+                    parameter_count = 0
                 for parameter in range(1, (parameter_count + 1)):
                     self._parameters.append(ParameterElement(page_driver=page_driver,
                                                             action_instance=action_instance,
@@ -241,11 +253,16 @@ class ExistingParameterComponent(ParameterComponent):
             input_id = f'id_ruleactions_set-{str(action_instance)}-id'
             record_id_input = self._driver.find_element(by=By.ID, value=input_id)
             param_set_id = record_id_input.get_attribute('value')
+            if param_set_id is None:
+                param_set_id = ''
             if param_set_id != '':
                 input_id = f'id_param{param_set_id}-TOTAL_FORMS'
                 parameter_count_input = self._driver.find_element(by=By.ID, value=input_id)
-                parameter_count = int(
-                    parameter_count_input.get_attribute('value'))
+                value = parameter_count_input.get_attribute('value')
+                if value is not None:
+                    parameter_count = int(value)
+                else:
+                    parameter_count = 0
             else:
                 parameter_count = 0
             for parameter in range(0, parameter_count):
@@ -303,7 +320,10 @@ class ActionComponent():
 
     def get_action_number(self) -> int:
         """ This function returns the action number of this component."""
-        return int(self._action_number_input.get_attribute('value'))
+        value = self._action_number_input.get_attribute('value')
+        if value is not None:
+            return int(value)
+        return 0
 
     @property
     def action_number_has_errors(self) -> bool:
@@ -322,8 +342,10 @@ class ActionComponent():
         """ This function selects the specified action in the action dropdown.
         """
         selector = Select(self._action_select)
-        move_select(self._driver, selector, self._action_select.get_attribute('id'), action)
-        self._parameters = parameter_component_factory(self._driver, self._instance)
+        attribute_id = self._action_select.get_attribute('id')
+        if attribute_id is not None:
+            move_select(self._driver, selector, attribute_id, action)
+            self._parameters = parameter_component_factory(self._driver, self._instance)
 
     @property
     def action_select_has_errors(self) -> bool:
@@ -408,8 +430,10 @@ class RuleFormPage(BasePage):
         self._form_count_input = page_driver.find_element(by=By.ID,
                                                           value='id_ruleactions_set-TOTAL_FORMS')
         self._action_forms = []
-        for form in range(0, int(self._form_count_input.get_attribute('value'))):
-            self._action_forms.append(ActionComponent(page_driver, form))
+        attribute_value = self._form_count_input.get_attribute('value')
+        if attribute_value is not None:
+            for form in range(0, int(attribute_value)):
+                self._action_forms.append(ActionComponent(page_driver, form))
 
     @property
     def has_errors(self) -> bool:
@@ -482,9 +506,11 @@ class RuleFormPage(BasePage):
                                                       value='add_action_button')
         move_click(self._driver, add_action_button)
         if form_count != self._form_count_input.get_attribute('value'):
-            self._action_forms.append(ActionComponent(self._driver,
-                            int(self._form_count_input.get_attribute('value')) - 1))
-            return True
+            attribute_value = self._form_count_input.get_attribute('value')
+            if attribute_value is not None:
+                self._action_forms.append(ActionComponent(self._driver,
+                                int(attribute_value) - 1))
+                return True
         return False
 
     def click_submit_button(self) -> str | None:
