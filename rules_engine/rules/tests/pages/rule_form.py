@@ -102,7 +102,7 @@ class ParameterElement():
                                                              value=control_name)
             classes = self._parameter_input.get_attribute('class')
             if classes is not None:
-                if not re.search(r' d-none', classes):
+                if not re.search(r'\bd-none\b', classes):
                     label_location = locate_with(
                         By.TAG_NAME, 'label').above(self._parameter_input) # type: ignore
                     self._parameter_label = page_driver.find_element(label_location) # type: ignore
@@ -145,7 +145,7 @@ class ParameterElement():
         if self._parameter_input is not None:
             classes = self._parameter_input.get_attribute('class')
             if classes is not None:
-                match = re.search(r' d-none', classes)
+                match = re.search(r'\bd-none\b', classes)
                 if not match:
                     return True
         return False
