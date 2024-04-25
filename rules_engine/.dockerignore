@@ -3,8 +3,14 @@
 /rules/static
 /rules/tests
 /Dockerfile
+/.coverage
 /.dockerignore
+/.venv
 /*.env
 /*.conf
 /*.yml
+/geckodriver.log
 /htmlcov
+/runtests.py
+/runtests.sh
+/test_requirements.txt

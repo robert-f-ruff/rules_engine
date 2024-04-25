@@ -1,10 +1,10 @@
 """Define the base page object."""
 from typing import Any
-from selenium.webdriver import Firefox
+from selenium.webdriver.remote.webdriver import WebDriver
 
 class BasePage:
     """ Parent class for all page objects."""
-    def __init__(self, page_driver:Firefox) -> None:
+    def __init__(self, page_driver:WebDriver) -> None:
         self._driver = page_driver
 
     def get_url(self) -> str:

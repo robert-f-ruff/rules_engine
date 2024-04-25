@@ -1,7 +1,7 @@
 """Define the index.html page object model."""
 import re
 import selenium.common.exceptions
-from selenium.webdriver import Firefox
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from .base import BasePage, WrongPageError
 
@@ -14,7 +14,7 @@ class IndexPage(BasePage):
     """ This class defines the interface for interacting with the index.html
         page.
     """
-    def __init__(self, page_driver: Firefox) -> None:
+    def __init__(self, page_driver: WebDriver) -> None:
         super().__init__(page_driver=page_driver)
         if self._driver.title != 'List of Rules':
             raise WrongPageError(self._driver.current_url, page_name='Index')

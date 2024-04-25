@@ -7,7 +7,7 @@ from selenium.common.exceptions import (NoSuchElementException, TimeoutException
                                         MoveTargetOutOfBoundsException,
                                         ElementNotInteractableException,
                                         NoAlertPresentException)
-from selenium.webdriver import Firefox
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -17,7 +17,7 @@ from selenium.webdriver.support.relative_locator import locate_with
 from .base import BasePage, WrongPageError
 
 
-def parse_errors(page_driver: Firefox, element: str) -> list[str]:
+def parse_errors(page_driver: WebDriver, element: str) -> list[str]:
     """ This function parses the specified error list into a list of
         strings.
     """
@@ -30,7 +30,7 @@ def parse_errors(page_driver: Firefox, element: str) -> list[str]:
         pass
     return error_list
 
-def prepare_to_click(page_driver: Firefox, element: str) -> None:
+def prepare_to_click(page_driver: WebDriver, element: str) -> None:
     """ This function ensures the requested element is visible in the
         viewport.
     """
@@ -43,7 +43,7 @@ def prepare_to_click(page_driver: Firefox, element: str) -> None:
         page_driver.execute_script(script)
         time.sleep(2)
 
-def move_send_keys(page_driver: Firefox, element: WebElement, text: str) -> None:
+def move_send_keys(page_driver: WebDriver, element: WebElement, text: str) -> None:
     """ This function will type the specified text into the specified element,
         scrolling the page if necessary.
     """
@@ -58,7 +58,7 @@ def move_send_keys(page_driver: Firefox, element: WebElement, text: str) -> None
             element.send_keys(text)
     time.sleep(2)
 
-def move_select(page_driver: Firefox, element: Select, element_id: str, item: str) -> None:
+def move_select(page_driver: WebDriver, element: Select, element_id: str, item: str) -> None:
     """ This function will select the specified item from the specified
         drop-down, scrolling the page if necessary.
     """
@@ -69,7 +69,7 @@ def move_select(page_driver: Firefox, element: Select, element_id: str, item: st
         element.select_by_visible_text(item)
     time.sleep(2)
 
-def move_click(page_driver: Firefox, element: WebElement) -> None:
+def move_click(page_driver: WebDriver, element: WebElement) -> None:
     """ This function will click the specified item, scrolling the page if
         necessary.
     """
@@ -87,7 +87,7 @@ class ParameterElement():
     """ This class defines the interface for interacting with a single
         parameter on the rule editor page.
     """
-    def __init__(self, page_driver: Firefox, action_instance: int = 0,
+    def __init__(self, page_driver: WebDriver, action_instance: int = 0,
                  parameter_instance: int = 0, param_set_id: int = 0) -> None:
         self._driver = page_driver
         if param_set_id == 0:
@@ -158,7 +158,7 @@ class ParameterComponent(ABC):
     NEW_PARAMETER_FORM = 'npf'
     EXISTING_PARAMETER_FORM = 'epf'
     @abstractmethod
-    def __init__(self, page_driver: Firefox, action_instance: int) -> None:
+    def __init__(self, page_driver: WebDriver, action_instance: int) -> None:
         self._driver = page_driver
         self._form_type = ''
         self._parameters: List[ParameterElement] = []
@@ -206,7 +206,7 @@ class NewParameterComponent(ParameterComponent):
         parameter component that is not associated with a record in the
         database (i.e., the ActionParameterForm)
     """
-    def __init__(self, page_driver: Firefox, action_instance: int) -> None:
+    def __init__(self, page_driver: WebDriver, action_instance: int) -> None:
         super().__init__(page_driver, action_instance)
         self._form_type = ParameterComponent.NEW_PARAMETER_FORM
         try:
@@ -243,7 +243,7 @@ class ExistingParameterComponent(ParameterComponent):
         one record per parameter.
         (i.e., the ActionParametersFormSet)
     """
-    def __init__(self, page_driver: Firefox, action_instance: int) -> None:
+    def __init__(self, page_driver: WebDriver, action_instance: int) -> None:
         super().__init__(page_driver, action_instance)
         self._form_type = ParameterComponent.EXISTING_PARAMETER_FORM
         try:
@@ -276,7 +276,7 @@ class ExistingParameterComponent(ParameterComponent):
         except NoSuchElementException:
             pass
 
-def parameter_component_factory(page_driver: Firefox,
+def parameter_component_factory(page_driver: WebDriver,
                                 action_instace: int) -> list[ParameterComponent]:
     """ This function creates the ParameterComponent array. A page can have
         both types of parameter forms.
@@ -292,7 +292,7 @@ class ActionComponent():
         the rule editor page.
     """
 
-    def __init__(self, page_driver: Firefox, instance: int) -> None:
+    def __init__(self, page_driver: WebDriver, instance: int) -> None:
         self._driver = page_driver
         self._instance = instance
         prefix = f'id_ruleactions_set-{str(instance)}-'
@@ -409,7 +409,7 @@ class RuleFormPage(BasePage):
         page.
     """
 
-    def __init__(self, page_driver: Firefox) -> None:
+    def __init__(self, page_driver: WebDriver) -> None:
         super().__init__(page_driver=page_driver)
         try:
             self._submit_button = WebDriverWait(page_driver, timeout=3).until(

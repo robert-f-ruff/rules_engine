@@ -2,7 +2,8 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 import requests_mock
-from selenium.webdriver import Firefox, FirefoxOptions
+from selenium.webdriver import DesiredCapabilities
+from testcontainers.selenium import BrowserWebDriverContainer
 from rules.models import Rule, RuleActions, RuleActionParameters
 from .pages.base import WrongPageError
 from .pages.index import IndexPage
@@ -19,22 +20,25 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Initialize Selenium and the test server.
         """
         super().setUpClass()
-        options = FirefoxOptions()
-        #options.add_argument('-headless')
-        options.add_argument('-purgecaches')
-        cls.selenium = Firefox(options=options)
+        cls.firefox = BrowserWebDriverContainer(
+            capabilities=DesiredCapabilities.FIREFOX,  # type: ignore
+            image='selenium/standalone-firefox')
+        cls.firefox.start()
+        cls.selenium = cls.firefox.get_driver()
 
     @classmethod
     def tearDownClass(cls) -> None:
         """ Shutdown Selenium and the test server.
         """
         cls.selenium.quit()
+        cls.firefox.stop()
         super().tearDownClass()
 
     def test_red_engine_status_area(self):
         """ Verify that the connection error is displayed.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             self.assertEqual(index_page.get_engine_status_area_color(), 'red')
@@ -51,7 +55,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         with requests_mock.Mocker() as mock:
             mock.get('/rules_engine/engine/status', status_code=200, reason='OK',
                      json={'status': 'IDLE'})
-            self.selenium.get(self.live_server_url + reverse('rules:index'))
+            self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                              + reverse('rules:index'))
             try:
                 index_page = IndexPage(page_driver=self.selenium)
                 self.assertEqual(index_page.get_engine_status_area_color(), 'green')
@@ -64,7 +69,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
     def test_no_rules_index(self):
         """ Verify the no rules message is displayed.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             self.assertEqual(index_page.get_no_rules_message(), 'There are no rules to manage.')
@@ -74,13 +80,15 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
     def test_add_new_rule_link(self):
         """ Verify the Add New Rule link functions as expected.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
             rule_editor = RuleFormPage(page_driver=self.selenium)
             self.assertEqual(rule_editor.get_url(),
-                             self.live_server_url + reverse('rules:add'),
+                             str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                             + reverse('rules:add'),
                              'add rule url is incorrect')
         except WrongPageError as error:
             self.fail('Wrong page address: ' + str(error))
@@ -88,7 +96,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
     def test_create_rule(self):
         """ Verify that a new rule is created.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -123,7 +132,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify that when the Reload Ruleset button is pressed and the engine responds to
             communications that the engine status area is properly updated.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -172,7 +182,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify that when the Reload Ruleset button is pressed and the engine does not respond
             to any communications that the engine status area remains the same.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -219,7 +230,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
                      json={'status': 'IDLE'})
             mock.put('/rules_engine/engine/reload', status_code=500,
                      reason='Internal Server Error')
-            self.selenium.get(self.live_server_url + reverse('rules:index'))
+            self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                              + reverse('rules:index'))
             try:
                 index_page = IndexPage(page_driver=self.selenium)
                 index_page.click_add_rule()
@@ -256,7 +268,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify the rule form is returned with an error on the
             Send text to field.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -299,7 +312,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify that a blank action form is only added when the last action
             on the page is populated.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -315,7 +329,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify that a blank action form is only added when the last action
             on the page is populated.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -342,7 +357,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
     def test_blank_action_number(self):
         """ Verify an alert is displayed when the action number field is blank.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -378,7 +394,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify an alert is displayed when an action number is duplicated
             on the form.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -435,7 +452,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify an alert is displayed when no action is selected from the
             action dropdown.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -464,7 +482,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify that an alert is displayed if there are no criteria
             checked.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -491,7 +510,8 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         """ Verify that a parameter record is not created when an optional
             parameter has no value.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_add_rule()
@@ -537,22 +557,26 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """ Initialize Selenium and the test server.
         """
         super().setUpClass()
-        options = FirefoxOptions()
-        options.add_argument('-purgecaches')
-        cls.selenium = Firefox(options=options)
+        cls.firefox = BrowserWebDriverContainer(
+            capabilities=DesiredCapabilities.FIREFOX,  # type: ignore
+            image='selenium/standalone-firefox')
+        cls.firefox.start()
+        cls.selenium = cls.firefox.get_driver()
 
     @classmethod
     def tearDownClass(cls) -> None:
         """ Shutdown Selenium and the test server.
         """
         cls.selenium.quit()
+        cls.firefox.stop()
         super().tearDownClass()
 
     def test_change_action(self):
         """ Verify parameter form is properly updated when an action is
             changed.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(0)
@@ -577,7 +601,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
 
     def test_change_action_save(self):
         """ Verify that a rule is updated when an action is changed."""
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(0)
@@ -610,7 +635,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
     def test_edit_rule_parameter_valid(self):
         """ Verify editing of a parameter works as expected.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(0)
@@ -640,7 +666,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
     def test_edit_rule_parameter_invalid(self):
         """ Verify editing of a parameter works as expected.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(1)
@@ -677,7 +704,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
 
     def test_add_action_to_existing_rule(self):
         """ Verify adding an action to an existing rule works as expected."""
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(0)
@@ -714,7 +742,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """ Verify that the first action is deleted and the new action is
             added.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(0)
@@ -755,7 +784,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """ Verify that the second action is deleted and the third action
             is added.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(2)
@@ -800,7 +830,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """ Verify that an error is displayed when an action is marked for
             deletion and its associated parameter value is changed.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(2)
@@ -838,7 +869,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """ Verify that an error is displayed when an action is marked for
             deletion and the action itself is changed.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(2)
@@ -875,7 +907,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
 
     def test_actions_sorted_ascending(self):
         """ Verify that actions are sorted by action number."""
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(3)
@@ -902,7 +935,8 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         """ Verify that when an optional parameter value is cleared, its
             associated record in the database is deleted.
         """
-        self.selenium.get(self.live_server_url + reverse('rules:index'))
+        self.selenium.get(str.replace(self.live_server_url, 'localhost', 'host.docker.internal')
+                          + reverse('rules:index'))
         try:
             index_page = IndexPage(page_driver=self.selenium)
             index_page.click_rule(0)

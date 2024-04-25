@@ -1,0 +1,8 @@
+Django==5.0.4
+gunicorn==22.0.0
+mysqlclient==2.2.4
+python-dotenv==1.0.1
+Requests==2.31.0
+requests_mock==1.12.1
+selenium==4.19.0
+testcontainers==4.4.0
