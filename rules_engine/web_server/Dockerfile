@@ -4,5 +4,3 @@ FROM nginx
 
 COPY nginx.conf /etc/nginx/
 COPY static/ /data/static/
-
-CMD [ "nginx", "-g", "daemon off;" ]
