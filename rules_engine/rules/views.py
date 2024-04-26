@@ -1,6 +1,5 @@
 """Define the views used by the rules engine."""
 from typing import Any
-import os
 import requests
 from django.http import (HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect,
                          JsonResponse, HttpRequest)
@@ -10,6 +9,7 @@ from django.urls import reverse_lazy
 from django.views import generic, View
 from .models import ActionParameters, Rule, RuleActions, RuleActionParameters
 from .forms import RuleForm, RuleActionsFormSet, ActionParametersFormSet, ActionParameterForm
+from .core import retrieve_setting
 
 
 class IndexView(generic.ListView):
@@ -287,12 +287,12 @@ def get_action_parameter_form(action_name, ruleaction_set_id='',
 def call_engine_api(endpoint: str) -> dict[str, str]:
     """ This function interacts with the backend engine via a REST API.
     """
-    url = f"http://{os.environ['ENGINE_HOST']}/rules_engine/engine/{endpoint}"
+    url = f"http://{retrieve_setting('engine_host')}/rules_engine/engine/{endpoint}"
     data = {}
     try:
         response = None
         if endpoint == 'reload':
-            response = requests.put(url, json={'accessCode': os.environ['ENGINE_RELOAD_KEY']},
+            response = requests.put(url, json={'accessCode': retrieve_setting('engine_reload_key')},
                                     timeout=10)
         else:
             response = requests.get(url, timeout=10)

@@ -3,8 +3,13 @@ services:
     build:
       context: .
     container_name: django_service
-    env_file:
-      - docker.env
+    secrets:
+      - engine_host
+      - engine_reload_key
+      - mysql_host
+      - mysql_user
+      - mysql_password
+      - secret_key
 
   nginx:
     build:
@@ -12,3 +17,17 @@ services:
     container_name: nginx_service
     ports:
     - 8000:8000
+
+secrets:
+  engine_host:
+    file: secret-engine_host.txt
+  engine_reload_key:
+    file: secret-engine_reload_key.txt
+  mysql_host:
+    file: secret-mysql_host.txt
+  mysql_user:
+    file: secret-mysql_user.txt
+  mysql_password:
+    file: secret-mysql_password.txt
+  secret_key:
+    file: secret-secret_key.txt

@@ -131,7 +131,6 @@ dmypy.json
 .vscode/settings.json
 
 rules_engine/web_server/static/
-rules_engine/docker.env
 backend/engine/db_password.txt
 backend/engine/db_root_password.txt
 backend/engine/docker.env
