@@ -85,16 +85,17 @@ class EngineViewTests(TestCase):
     def test_httpconnectionpool_error(self):
         """ The engine API wrapper should handle HTTPConnectionPool connection exceptions.
         """
-        url = reverse('rules:engine_reload')
-        response = self.client.get(path=url)
-        actual = response.json()
-        expected = {'engine_alert': 'True',
-                    'engine_status_text_status': 'Failed to establish a new connection: '
-                                                  + '[Errno 61] Connection refused',
-                    'engine_status_text_reload': 'Failed to establish a new connection: '
-                                                  + '[Errno 61] Connection refused',
-        }
-        self.assertEqual(expected, actual)
+        with requests_mock.Mocker() as mock:
+            mock.get('/rules_engine/engine/status', exc=requests.exceptions.ConnectionError)
+            mock.put('/rules_engine/engine/reload', exc=requests.exceptions.ConnectionError)
+            url = reverse('rules:engine_reload')
+            response = self.client.get(path=url)
+            actual = response.json()
+            expected = {'engine_alert': 'True',
+                        'engine_status_text_status': '',
+                        'engine_status_text_reload': '',
+            }
+            self.assertEqual(expected, actual)
 
 
 class TestEngineAPI(unittest.TestCase):
