@@ -11,6 +11,8 @@ COPY . .
 RUN pip3 install -r requirements.txt
 RUN rm -f /app/requirements.txt
 
+RUN mkdir /app/log
+
 RUN groupadd -r django && useradd -r -g django django
 RUN chown -R django:django /app
 

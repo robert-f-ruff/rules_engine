@@ -1,15 +1,22 @@
 """Define the views used by the rules engine."""
+import logging
 from typing import Any
 import requests
-from django.http import (HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect,
-                         JsonResponse, HttpRequest)
-from django.shortcuts import render, get_object_or_404, redirect
+
+from django.forms import BaseInlineFormSet, ModelForm
+from django.http import (HttpRequest, HttpResponse, HttpResponseNotAllowed,
+                         HttpResponseRedirect, JsonResponse, QueryDict)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views import generic, View
-from .models import ActionParameters, Rule, RuleActions, RuleActionParameters
-from .forms import RuleForm, RuleActionsFormSet, ActionParametersFormSet, ActionParameterForm
+from django.views import View, generic
+
 from .core import retrieve_setting
+from .forms import (ActionParameterForm, ActionParametersFormSet,
+                    RuleActionsFormSet, RuleForm)
+from .models import ActionParameters, Rule, RuleActionParameters, RuleActions
+
+logger = logging.getLogger('rules_engine')
 
 
 class IndexView(generic.ListView):
@@ -56,9 +63,11 @@ class RuleDeleteView(generic.edit.DeleteView):
     context_object_name = 'rule'
     success_url = reverse_lazy('rules:index')
 
-    def form_valid(self, form) -> HttpResponseRedirect:
+    def form_valid(self, form: ModelForm) -> HttpResponseRedirect:
         """ This function is called when a record in the database is deleted.
         """
+        rule = self.get_object()
+        logger.info('Deleted rule #%i %s', rule.pk, rule.name) # type: ignore
         call_status = call_engine_api('reload')
         for key in call_status:
             self.request.session[key] = call_status.get(key)
@@ -81,7 +90,8 @@ class RuleView(View):
         self.parameter_forms = []
         self.forms_to_save = {'form_sets': [], 'forms': []}
 
-    def get(self, request: HttpRequest, *args, rule_id=0, **kwargs) -> HttpResponse:
+    def get(self, request: HttpRequest, *args: Any, rule_id: int = 0, **kwargs: Any) -> (
+            HttpResponse):
         """ This function responds to the HTTP GET command.
         """
         if rule_id > 0:
@@ -103,9 +113,11 @@ class RuleView(View):
             else:
                 self.parameter_formsets.append(None)
                 self.parameter_forms.append(None)
+        logger.info('Successfully generated rule form with rule_id %i',
+                     rule_id)
         return render(request, self.template_name, self.get_context_data())
 
-    def post(self, request: HttpRequest, *args, rule_id=0, **kwargs) -> (
+    def post(self, request: HttpRequest, *args: Any, rule_id: int = 0, **kwargs: Any) -> (
             HttpResponseRedirect | HttpResponse):
         """ This function responds to the HTTP POST command.
         """
@@ -166,7 +178,14 @@ class RuleView(View):
             else:
                 self.parameter_forms.append(None)
         if all_pass:
+            logger.debug('All forms are valid, saving forms')
             self.rule_form.save()
+            if rule_id == 0:
+                logger.info('Created rule #%i %s', self.rule_form.instance.pk,
+                            self.rule_form.instance.name) # type: ignore
+            else:
+                logger.info('Updated rule #%i %s', self.rule_form.instance.pk,
+                            self.rule_form.instance.name) # type: ignore
             self.rule_actions_formset.save()
             for index in self.forms_to_save['form_sets']:
                 self.parameter_formsets[index].save()
@@ -175,6 +194,7 @@ class RuleView(View):
                 rule_action_form = self.rule_actions_formset[index]
                 parameter_form.save(rule_action_form.instance)
             if modified:
+                logger.debug('Instructing the engine to reload the ruleset')
                 call_status = call_engine_api('reload')
                 for key in call_status:
                     request.session[key] = call_status.get(key)
@@ -215,8 +235,9 @@ class RuleView(View):
         else:
             self.template_name = 'rules/rule_create.html'
 
-    def get_part_action_parameter_form(self, rule_action_form, data=None) -> (
-            ActionParameterForm | None):
+    def get_part_action_parameter_form(self, rule_action_form: BaseInlineFormSet,
+                                       data: QueryDict | None = None) -> (
+                                           ActionParameterForm | None):
         """ This function will return a new parameter form containing just the
             parameters that do not exist in the database.
         """
@@ -234,9 +255,12 @@ class RuleView(View):
                     ruleaction_set_id=
                         self.rule_actions_formset.forms.index(rule_action_form) # type: ignore
                 )
+            else:
+                logger.debug('No missing parameters for rule action ID #%i',
+                             rule_action_form.instance.pk)
         return None
 
-def parameters(request, action_name) -> JsonResponse | HttpResponseNotAllowed:
+def parameters(request: HttpRequest, action_name: str) -> JsonResponse | HttpResponseNotAllowed:
     """ This function will return a JSON object containing the parameters
         for the requested action.
     """
@@ -251,10 +275,12 @@ def parameters(request, action_name) -> JsonResponse | HttpResponseNotAllowed:
                                                    ruleaction_set_id=ruleaction_set_id)
         rendered_form = render_to_string('rules/action_parameter_form.html',
                                          {'parameter_form': parameter_form})
+        logger.info('Successfully returned parameters for action %s', action_name)
         return JsonResponse({'parameter_form': rendered_form})
+    logger.warning('Invalid request method %s from %s', request.method, request.get_host())
     return HttpResponseNotAllowed(['GET'])
 
-def engine_reload(request) -> JsonResponse | HttpResponseNotAllowed:
+def engine_reload(request: HttpRequest) -> JsonResponse | HttpResponseNotAllowed:
     """ This function will call the engine status and ruleset reload APIs and return the
         result in a JSON object.
     """
@@ -268,11 +294,13 @@ def engine_reload(request) -> JsonResponse | HttpResponseNotAllowed:
             data['engine_alert'] = 'True'
         else:
             data['engine_alert'] = 'False'
+        logger.info('Successfully returned engine status; engine_alert = %s', data['engine_alert'])
         return JsonResponse(data=data)
+    logger.warning('Invalid request method %s from %s', request.method, request.get_host())
     return HttpResponseNotAllowed(['GET'])
 
-def get_action_parameter_form(action_name, ruleaction_set_id='',
-                              data=None) -> ActionParameterForm:
+def get_action_parameter_form(action_name: str, ruleaction_set_id: str ='',
+                              data: QueryDict | None = None) -> ActionParameterForm:
     """ This function will return a fully functional ActionParameterForm.
     """
     action_parameters = (ActionParameters.objects.select_related('parameter')
@@ -281,6 +309,8 @@ def get_action_parameter_form(action_name, ruleaction_set_id='',
     for action_parameter in action_parameters:
         fields.append({'parameter': action_parameter.parameter,
                        'parameter_number': action_parameter.parameter_number})
+    logger.debug('Generated ActionParameterForm for action %s and ruleaction_set_id %s',
+                 action_name, ruleaction_set_id)
     return ActionParameterForm(data, create_fields=fields,
                                ruleaction_set_id=ruleaction_set_id)
 
@@ -300,6 +330,8 @@ def call_engine_api(endpoint: str) -> dict[str, str]:
             data['engine_response_status_' + endpoint] = 'OK'
             status = response.json()['status']
             if endpoint == 'reload':
+                if status != 'OK':
+                    logger.warning('Rules Engine Reload: %s', status)
                 status = {
                     'OK': 'Ruleset successfully reloaded',
                     'FAILED': 'Ruleset was not reloaded',
@@ -310,10 +342,17 @@ def call_engine_api(endpoint: str) -> dict[str, str]:
                                         f'Error Code {response.status_code}'
             )
             data['engine_status_text_' + endpoint] = response.reason
+            logger.warning('HTTP Error Code %i: %s', response.status_code, response.reason)
     except requests.exceptions.ConnectionError as error:
         data['engine_response_status_' + endpoint] = 'Connection Error'
-        data['engine_status_text_' + endpoint] = str(error).split('>: ')[1].split("'))")[0]
+        error_text = str(error).split('>: ')
+        if len(error_text) >= 2:
+            data['engine_status_text_' + endpoint] = error_text[1].split("'))")[0]
+        else:
+            data['engine_status_text_' + endpoint] = str(error)
+        logger.warning('Connection Error: %s', data['engine_status_text_' + endpoint])
     except requests.exceptions.RequestException as error:
         data['engine_response_status_' + endpoint] = 'Request Error'
         data['engine_status_text_' + endpoint] = str(error)
+        logger.warning('Request Error: %s', data['engine_status_text_' + endpoint])
     return data

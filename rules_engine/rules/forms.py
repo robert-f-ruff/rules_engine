@@ -1,9 +1,13 @@
 """Define the forms used by the rules engine."""
+import logging
+from typing import Any
 from django.forms import (Form, ModelForm, BaseInlineFormSet,
                           CheckboxSelectMultiple, TextInput, HiddenInput,
                           inlineformset_factory, Select, IntegerField,
                           CharField)
 from .models import Parameter, Rule, RuleActions, RuleActionParameters
+
+logger = logging.getLogger('rules_engine')
 
 
 class RuleForm(ModelForm):
@@ -44,7 +48,7 @@ RuleActionsFormSet = inlineformset_factory(Rule,
                                            form=RuleActionsForm,
                                            extra=1,
                                            can_delete=True,
-                                           can_delete_extra=False)
+                                           can_delete_extra=False) # type: ignore
 
 
 class RuleActionParametersForm(ModelForm):
@@ -60,13 +64,13 @@ class RuleActionParametersForm(ModelForm):
             'parameter_value': TextInput,
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """ This function executes when the form is created.
         """
         super().__init__(*args, **kwargs)
         self.fields['parameter_value'] = self.instance.parameter.form_control
 
-    def clean(self):
+    def clean(self) -> dict[str, Any]:
         """ This function executes when the form is cleaned.
         """
         super().clean()
@@ -97,7 +101,7 @@ class ActionParameterForm(Form):
     This form allows the user to set the parameters for an associated
     action.
     """
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """ This function executes when the form is created.
 
         It creates a field for each parameter with the parameter's type.
@@ -127,9 +131,10 @@ class ActionParameterForm(Form):
         """
         return 'new_parameter_form-' + str(ruleaction_set_id) + '-'
 
-    def save(self, rule_action: RuleActions):
+    def save(self, rule_action: RuleActions) -> None:
         """ This function will save the data stored in this form.
         """
+        logger.debug('ActionParameterForm.save(rule_action=%s) called', rule_action.__str__())
         for number in range(1, self.cleaned_data[self._parameter_count] + 1):
             id_number = number
             while (self._prefix + 'parameter_name-' + str(id_number)) not in self.cleaned_data:
@@ -145,4 +150,5 @@ class ActionParameterForm(Form):
                     parameter=parameter,
                     parameter_value=parameter_value
                 )
+                logger.debug('ActionParameterForm: Saving %s', rule_action_parameter.__str__())
                 rule_action_parameter.save()

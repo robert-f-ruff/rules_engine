@@ -3,6 +3,8 @@ services:
     build:
       context: .
     container_name: django_service
+    volumes:
+      - django_logs:/app/log
     secrets:
       - engine_host
       - engine_reload_key
@@ -31,3 +33,6 @@ secrets:
     file: secret-mysql_password.txt
   secret_key:
     file: secret-secret_key.txt
+
+volumes:
+  django_logs:
