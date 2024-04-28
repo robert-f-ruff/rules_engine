@@ -14,7 +14,7 @@ from .pages.rule_form import RuleFormPage, ParameterComponent
 class ClientTestsEmptyDB(StaticLiveServerTestCase):
     """ Test the interface used by an end user.
     """
-    fixtures = ['actions_parameters.json']
+    fixtures = ['test_actions_parameters.json']
 
     @classmethod
     def setUpClass(cls) -> None:
