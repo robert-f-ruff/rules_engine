@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(find_dotenv())
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = retrieve_setting('secret_key')
+SECRET_KEY = retrieve_setting('django_secret_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -84,9 +84,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'rules',
-        'USER': retrieve_setting('mysql_user'),
-        'PASSWORD': retrieve_setting('mysql_password'),
-        'HOST': retrieve_setting('mysql_host'),
+        'USER': retrieve_setting('db_user_name'),
+        'PASSWORD': retrieve_setting('db_user_password'),
+        'HOST': retrieve_setting('db_host'),
         'PORT': '',
     }
 }

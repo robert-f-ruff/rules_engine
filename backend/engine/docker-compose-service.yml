@@ -1,6 +1,8 @@
 services:
   backend_service:
-    build: .
+    build:
+      context: ../../
+      dockerfile: backend/engine/Dockerfile
     container_name: engine_service
     env_file:
       - docker.env
@@ -8,11 +10,11 @@ services:
       - 8080:8080
       - 9990:9990
     secrets:
-      - db_password
-      - db_user
+      - db_user_password
+      - db_user_name
 
 secrets:
-  db_password:
-    file: db_password.txt
-  db_user:
-    file: db_user.txt
+  db_user_password:
+    file: ../../secrets/db_user_password.txt
+  db_user_name:
+    file: ../../secrets/db_user_name.txt

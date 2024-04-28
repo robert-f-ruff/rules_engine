@@ -15,11 +15,5 @@
 /htmlcov
 /runtests.py
 /runtests.sh
-/secret-engine_host.txt
-/secret-engine_reload_key.txt
-/secret-mysql_host.txt
-/secret-mysql_password.txt
-/secret-mysql_user.txt
-/secret-secret_key.txt
 /test_requirements.txt
 /web_server

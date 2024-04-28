@@ -131,13 +131,5 @@ dmypy.json
 .vscode/settings.json
 
 frontend/web_server/static/
-backend/engine/db_password.txt
-backend/engine/db_root_password.txt
 backend/engine/docker.env
 backend/engine/wildfly_configuration.txt
-frontend/secret-engine_host.txt
-frontend/secret-engine_reload_key.txt
-frontend/secret-mysql_host.txt
-frontend/secret-mysql_password.txt
-frontend/secret-mysql_user.txt
-frontend/secret-secret_key.txt

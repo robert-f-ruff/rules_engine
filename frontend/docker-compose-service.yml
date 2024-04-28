@@ -8,10 +8,10 @@ services:
     secrets:
       - engine_host
       - engine_reload_key
-      - mysql_host
-      - mysql_user
-      - mysql_password
-      - secret_key
+      - db_host
+      - db_user_name
+      - db_user_password
+      - django_secret_key
 
   nginx:
     build:
@@ -22,17 +22,17 @@ services:
 
 secrets:
   engine_host:
-    file: secret-engine_host.txt
+    file: ../secrets/engine_host.txt
   engine_reload_key:
-    file: secret-engine_reload_key.txt
-  mysql_host:
-    file: secret-mysql_host.txt
-  mysql_user:
-    file: secret-mysql_user.txt
-  mysql_password:
-    file: secret-mysql_password.txt
-  secret_key:
-    file: secret-secret_key.txt
+    file: ../secrets/engine_reload_key.txt
+  db_host:
+    file: ../secrets/db_host.txt
+  db_user_name:
+    file: ../secrets/db_user_name.txt
+  db_user_password:
+    file: ../secrets/db_user_password.txt
+  django_secret_key:
+    file: ../secrets/django_secret_key.txt
 
 volumes:
   django_logs:

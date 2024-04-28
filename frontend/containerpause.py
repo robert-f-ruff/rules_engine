@@ -5,9 +5,9 @@ from dotenv import load_dotenv, find_dotenv
 from rules.core import retrieve_setting
 
 load_dotenv(find_dotenv())
-db_host = retrieve_setting('mysql_host')
-db_user = retrieve_setting('mysql_user')
-db_password = retrieve_setting('mysql_password')
+db_host = retrieve_setting('db_host')
+db_user = retrieve_setting('db_user_name')
+db_password = retrieve_setting('db_user_password')
 print('Verifying database connectivity...', end='', flush=True)
 while True:
     try:
