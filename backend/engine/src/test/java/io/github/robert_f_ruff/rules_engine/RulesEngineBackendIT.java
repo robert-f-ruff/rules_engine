@@ -15,8 +15,11 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -24,6 +27,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(OrderAnnotation.class)
 @Testcontainers
 public class RulesEngineBackendIT {
   private static ToStringConsumer logOutput = new ToStringConsumer();
@@ -49,12 +53,13 @@ public class RulesEngineBackendIT {
   }
 
   @Test
+  @Order(1)
   void test_Patient_Data() throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(baseUrl + "data/patient"))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
-        .POST(BodyPublishers.ofString("{\"gender\":\"Male\",\"birthDate\":\"1999-04-15\"}"))
+        .POST(BodyPublishers.ofString("{\"gender\":\"MALE\",\"birthDate\":\"1999-04-15\"}"))
         .build();
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
     assertEquals("{\"status\":\"OK\"}", response.body());
@@ -67,6 +72,7 @@ public class RulesEngineBackendIT {
   }
 
   @Test
+  @Order(2)
   void test_Observation_Data() throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(baseUrl + "data/observation"))
@@ -88,6 +94,7 @@ public class RulesEngineBackendIT {
   }
 
   @Test
+  @Order(3)
   void test_Reload_Rules() throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(baseUrl + "engine/reload"))
@@ -106,6 +113,7 @@ public class RulesEngineBackendIT {
   }
 
   @Test
+  @Order(4)
   void test_Engine_Status() throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(baseUrl + "engine/status"))

@@ -3,6 +3,8 @@ package io.github.robert_f_ruff.rules_engine.logic;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.constraints.Min;
 
 /**
@@ -40,7 +42,9 @@ public class ObservationData {
    * @param glucose The amount of glucose in the patient's blood (mg/dL)
    * @since 1.0
    */
-  public ObservationData(BigDecimal weight, BigDecimal glucose) {
+  @JsonbCreator()
+  public ObservationData(@JsonbProperty("weight") BigDecimal weight,
+      @JsonbProperty("glucose") BigDecimal glucose) {
     this.weight = weight;
     this.glucose = glucose;
   }

@@ -57,7 +57,7 @@ public class Engine {
 	 */
 	public void run(Object rawData) {
 		status = Status.RUNNING;
-		logger.fine("Engine start: Raw data type is " + rawData.getClass().getName());
+		logger.fine("Engine start; Raw data is " + rawData.toString());
 		ArrayList<Criterion> criteria = repository.getCriteria();
 		logger.fine("Evaluating criteria:");
 		criteria.stream().forEach(criterion -> {

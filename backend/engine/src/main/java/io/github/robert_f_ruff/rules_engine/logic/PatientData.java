@@ -4,6 +4,8 @@ import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 
@@ -58,7 +60,9 @@ public class PatientData {
    * @param birthDate The date the patient was born, formatted as {@code YYYY-MM-DD}
    * @since 1.0
    */
-  public PatientData(Gender gender, String birthDate) {
+  @JsonbCreator
+  public PatientData(@JsonbProperty("gender") Gender gender,
+      @JsonbProperty("birthDate") String birthDate) {
     this.gender = gender;
     this.birthDate = LocalDate.parse(CharBuffer.wrap(birthDate.toCharArray()));
   }

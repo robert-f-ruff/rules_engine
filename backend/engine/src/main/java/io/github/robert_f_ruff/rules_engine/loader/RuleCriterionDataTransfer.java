@@ -145,7 +145,8 @@ public class RuleCriterionDataTransfer {
   @Override
   public String toString() {
     return "RuleCriterionDataTransfer [ruleId=" + ruleId + ", ruleName=" + ruleName
-        + ", criterionName=" + criterionName + ", criterionLogic=" + criterionLogicClassName
-        + "]";
+        + ", criterionName=" + criterionName + ", criterionLogicClassName="
+        + criterionLogicClassName + ", criterionLogicMethodName=" + criterionLogicMethodName
+        + ", criterionLogicCheckValue=" + criterionLogicCheckValue + "]";
   }
 }

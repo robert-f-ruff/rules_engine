@@ -1,23 +1,23 @@
-20:00:40,567 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Engine start: Raw data type is io.github.robert_f_ruff.rules_engine.logic.PatientData
+20:00:40,567 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Engine start; Raw data is PatientData [gender=MALE, birthDate=1999-04-15]
 20:00:40,580 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Retrieving rule records from data source
 20:00:40,805 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1) Processing returned rule criteria records:
-20:00:40,808 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=1, ruleName=Sample Rule #1, criterionName=Age Greater Than 40, criterionLogic=Patient]
+20:00:40,808 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=1, ruleName=Sample Rule #1, criterionName=Age Greater Than 40, criterionLogicClassName=Patient, criterionLogicMethodName=AgeGreaterThan, criterionLogicCheckValue=40]
 20:00:40,809 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Creating new rule
 20:00:40,811 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
 20:00:40,811 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
-20:00:40,811 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=1, ruleName=Sample Rule #1, criterionName=Patient Is Female, criterionLogic=Patient]
+20:00:40,811 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=1, ruleName=Sample Rule #1, criterionName=Patient Is Female, criterionLogicClassName=Patient, criterionLogicMethodName=IsFemale, criterionLogicCheckValue=]
 20:00:40,811 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Retrieving existing rule
 20:00:40,811 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
 20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
-20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=2, ruleName=Sample Rule #2, criterionName=Age Greater Than 40, criterionLogic=Patient]
+20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=2, ruleName=Sample Rule #2, criterionName=Age Greater Than 40, criterionLogicClassName=Patient, criterionLogicMethodName=AgeGreaterThan, criterionLogicCheckValue=40]
 20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Creating new rule
 20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Retrieving criterion from collection
 20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
-20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=2, ruleName=Sample Rule #2, criterionName=Body Weight Greater Than 200, criterionLogic=Observation]
+20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=2, ruleName=Sample Rule #2, criterionName=Body Weight Greater Than 200, criterionLogicClassName=Observation, criterionLogicMethodName=BodyWeightGreaterThan, criterionLogicCheckValue=200]
 20:00:40,812 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Retrieving existing rule
 20:00:40,814 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
 20:00:40,814 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------
-20:00:40,814 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=3, ruleName=Sample Rule #3, criterionName=Blood Glucose Less Than 100, criterionLogic=Observation]
+20:00:40,814 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Processing record RuleCriterionDataTransfer [ruleId=3, ruleName=Sample Rule #3, criterionName=Blood Glucose Less Than 100, criterionLogicClassName=Observation, criterionLogicMethodName=BloodGlucoseLessThan, criterionLogicCheckValue=100]
 20:00:40,814 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Creating new rule
 20:00:40,815 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   Adding criterion to collection
 20:00:40,815 FINE  [io.github.robert_f_ruff.rules_engine.loader.RuleRepository] (default task-1)   -------

@@ -1,4 +1,4 @@
-19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Engine start: Raw data type is io.github.robert_f_ruff.rules_engine.logic.ObservationData
+19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Engine start; Raw data is ObservationData [weight=186, glucose=92]
 19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Evaluating criteria:
 19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Criterion Age Greater Than 40 is not compatible
 19:28:10,646 FINE  [io.github.robert_f_ruff.rules_engine.Engine] (default task-1) Criterion Patient Is Female is not compatible
