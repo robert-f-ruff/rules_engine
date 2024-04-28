@@ -1,0 +1,5 @@
+name: rules_engine
+
+include:
+  - frontend/docker-compose-service.yml
+  - backend/engine/docker-compose-service.yml

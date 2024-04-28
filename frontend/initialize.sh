@@ -1,5 +1,7 @@
 #!/bin/bash
 
+python3 containerpause.py
+
 #Initialize Django by making migrations and migrating the database.
 echo "Initializing database..."
 python3 manage.py makemigrations rules --noinput

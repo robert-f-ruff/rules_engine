@@ -1,0 +1,18 @@
+services:
+  backend_service:
+    build: .
+    container_name: engine_service
+    env_file:
+      - docker.env
+    ports:
+      - 8080:8080
+      - 9990:9990
+    secrets:
+      - db_password
+      - db_user
+
+secrets:
+  db_password:
+    file: db_password.txt
+  db_user:
+    file: db_user.txt

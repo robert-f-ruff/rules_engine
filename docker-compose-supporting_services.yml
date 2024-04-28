@@ -1,0 +1,42 @@
+name: rules_engine_support_services
+
+services:
+  db:
+    image: mysql:8.3.0
+    container_name: database_service
+    volumes:
+      - database_service_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE: rules
+      MYSQL_USER_FILE: /run/secrets/db_user
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    ports:
+      - 3306:3306
+    secrets:
+      - db_root_password
+      - db_password
+      - db_user
+  email:
+    image: axigen/axigen:latest
+    container_name: email_service
+    ports:
+      - 25:25
+      - 443:443
+      - 443:443
+      - 9443:9443
+    volumes:
+      - mail-data:/axigen/var
+
+secrets:
+  db_password:
+    file: backend/engine/db_password.txt
+  db_root_password:
+    file: backend/engine/db_root_password.txt
+  db_user:
+    file: backend/engine/db_user.txt
+
+volumes:
+  database_service_data:
+  mail-data:
+    external: true

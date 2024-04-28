@@ -1,0 +1,5 @@
+name: rules_engine_demonstration
+
+include:
+  - docker-compose-supporting_services.yml
+  - docker-compose-deployment.yml
