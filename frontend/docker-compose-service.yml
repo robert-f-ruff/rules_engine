@@ -11,6 +11,7 @@ services:
       - engine_host
       - engine_reload_key
       - db_host
+      - db_host_port
       - db_user_name
       - db_user_password
       - django_secret_key
@@ -35,6 +36,8 @@ secrets:
     file: ../secrets/engine_reload_key.txt
   db_host:
     file: ../secrets/db_host.txt
+  db_host_port:
+    file: ../../secrets/db_host_port.txt
   db_user_name:
     file: ../secrets/db_user_name.txt
   db_user_password:
