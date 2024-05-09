@@ -3,6 +3,8 @@ services:
     build:
       context: .
     container_name: django_service
+    networks:
+      - rules_engine
     volumes:
       - django_logs:/app/log
     secrets:
@@ -17,8 +19,14 @@ services:
     build:
       context: web_server/
     container_name: nginx_service
+    networks:
+      - rules_engine
     ports:
     - 8000:8000
+
+networks:
+  rules_engine:
+    external: true
 
 secrets:
   engine_host:

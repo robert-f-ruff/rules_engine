@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -34,9 +36,9 @@ public class RulesEngineBackendIT {
   @Container
   public static ComposeContainer environment
       = new ComposeContainer(new File("docker-compose-test.yml"))
-          .withExposedService("backend_service-1", 8080)
-          .waitingFor("backend_service-1", Wait.forLogMessage(".*WFLYSRV0025.*", 1))
-          .withLogConsumer("backend_service-1", logOutput)
+          .withExposedService("backend_service_test-1", 8080)
+          .waitingFor("backend_service_test-1", Wait.forLogMessage(".*WFLYSRV0025.*", 1))
+          .withLogConsumer("backend_service_test-1", logOutput)
           .withLocalCompose(true);
   private String baseUrl;
   private HttpClient client;
@@ -44,8 +46,8 @@ public class RulesEngineBackendIT {
   
   @BeforeAll
   void init() {
-    baseUrl = "http://" + environment.getServiceHost("backend_service", 8080)
-        + ":" + environment.getServicePort("backend_service", 8080) + "/rules_engine/";
+    baseUrl = "http://" + environment.getServiceHost("backend_service_test", 8080)
+        + ":" + environment.getServicePort("backend_service_test", 8080) + "/rules_engine/";
     client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(5))
         .build();
@@ -83,9 +85,6 @@ public class RulesEngineBackendIT {
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
     assertEquals("{\"status\":\"OK\"}", response.body());
     actualLog.loadStream(logOutput.toUtf8String());
-    if (actualLog.hasAlarm()) {
-      assertTrue(false);
-    }
     assertFalse(actualLog.hasAlarm());
     ParseLog expectedLog = new ParseLog();
     expectedLog.loadFile(this.getClass().getResource("/Observation_Data_Reference_Log.txt").getPath());
@@ -96,11 +95,19 @@ public class RulesEngineBackendIT {
   @Test
   @Order(3)
   void test_Reload_Rules() throws IOException, InterruptedException {
+    String reloadKey = "";
+    File configFile = new File("../../secrets/engine_reload_key.txt");
+    try (BufferedReader config = new BufferedReader(new FileReader(configFile.getAbsolutePath()))) {
+      String line;
+      while ((line = config.readLine()) != null) {
+        reloadKey = line;
+      }
+    }
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(baseUrl + "engine/reload"))
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
-        .PUT(BodyPublishers.ofString("{\"accessCode\":\"AAAA\"}"))
+        .PUT(BodyPublishers.ofString("{\"accessCode\":\"" + reloadKey + "\"}"))
         .build();
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
     assertEquals("{\"status\":\"OK\"}", response.body());

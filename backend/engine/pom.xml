@@ -6,17 +6,16 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.github.robert_f_ruff</groupId>
-  <artifactId>engine</artifactId>
+  <artifactId>rules-engine</artifactId>
   <packaging>war</packaging>
   <version>1.0-SNAPSHOT</version>
 
   <name>Rules Engine</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <url>https://robert-f-ruff.github.io</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencyManagement>
@@ -38,7 +37,6 @@
       <version>10.0.0</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.eclipse.microprofile</groupId>
       <artifactId>microprofile</artifactId>
@@ -46,54 +44,51 @@
       <type>pom</type>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.eclipse.microprofile.config</groupId>
       <artifactId>microprofile-config-api</artifactId>
       <version>3.1</version>
       <scope>provided</scope>
     </dependency>
-
+    <dependency>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-maven-plugin</artifactId>
+        <version>5.0.0.Final</version>
+    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.5.3</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.10.2</version>
+      <version>5.11.0-M1</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>5.11.0</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>com.icegreen</groupId>
       <artifactId>greenmail-junit5</artifactId>
       <version>2.1.0-alpha-4</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
@@ -104,14 +99,17 @@
           <artifactId>maven-clean-plugin</artifactId>
           <version>3.3.2</version>
         </plugin>
-        <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.6.1</version>
+        </plugin>
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <version>3.3.1</version>
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.12.1</version>
+          <version>3.13.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -142,6 +140,10 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.5.0</version>
         </plugin>
+        <plugin>
+          <artifactId>wildfly-maven-plugin</artifactId>
+          <version>5.0.0.Final</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -167,6 +169,37 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.6.1</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>properties</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>copy-dependency-for-docker</id>
+              <goals>
+                <goal>copy</goal>
+              </goals>
+              <phase>package</phase>
+              <configuration>
+                <artifact>io.github.robert_f_ruff:wildfly-configuration:1.0</artifact>
+                <outputDirectory>${project.basedir}</outputDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.2.5</version>
+          <configuration>
+            <argLine>@{argLine} -javaagent:${net.bytebuddy:byte-buddy-agent:jar}</argLine>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>3.2.5</version>
           <executions>
@@ -174,6 +207,33 @@
               <goals>
                 <goal>integration-test</goal>
                 <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.wildfly.plugins</groupId>
+          <artifactId>wildfly-maven-plugin</artifactId>
+          <version>5.0.0.Final</version>
+          <configuration>
+            <feature-packs>
+              <feature-pack>
+                <location>org.wildfly:wildfly-galleon-pack:31.0.1.Final</location>
+              </feature-pack>
+              <feature-pack>
+                <location>org.wildfly:wildfly-datasources-galleon-pack:8.0.0.Final</location>
+              </feature-pack>
+            </feature-packs>
+            <layers>
+              <layer>jaxrs-server</layer>
+              <layer>mysql-driver</layer>
+              <layer>mail</layer>
+            </layers>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>package</goal>
               </goals>
             </execution>
           </executions>

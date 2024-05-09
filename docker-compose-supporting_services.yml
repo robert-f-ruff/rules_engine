@@ -11,6 +11,8 @@ services:
       MYSQL_DATABASE: rules
       MYSQL_USER_FILE: /run/secrets/db_user_name
       MYSQL_PASSWORD_FILE: /run/secrets/db_user_password
+    networks:
+      - rules_engine
     ports:
       - 3306:3306
     secrets:
@@ -18,15 +20,19 @@ services:
       - db_user_password
       - db_user_name
   email:
-    image: axigen/axigen:latest
+    image: greenmail/standalone:latest
     container_name: email_service
+    env_file:
+      - backend/engine/greenmail.env
+    networks:
+      - rules_engine
     ports:
-      - 25:25
-      - 443:443
-      - 443:443
-      - 9443:9443
-    volumes:
-      - mail-data:/axigen/var
+      - 3025:3025
+      - 8081:8080
+
+networks:
+  rules_engine:
+    external: true
 
 secrets:
   db_user_password:
@@ -38,5 +44,3 @@ secrets:
 
 volumes:
   database_service_data:
-  mail-data:
-    external: true

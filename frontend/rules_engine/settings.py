@@ -87,7 +87,7 @@ DATABASES = {
         'USER': retrieve_setting('db_user_name'),
         'PASSWORD': retrieve_setting('db_user_password'),
         'HOST': retrieve_setting('db_host'),
-        'PORT': '',
+        'PORT': retrieve_setting('db_host_port'),
     }
 }
 

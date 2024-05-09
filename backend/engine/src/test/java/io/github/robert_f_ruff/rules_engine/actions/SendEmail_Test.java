@@ -1,5 +1,6 @@
 package io.github.robert_f_ruff.rules_engine.actions;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,12 +19,12 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
 
-import jakarta.mail.Folder;
+import jakarta.mail.Address;
 import jakarta.mail.Message;
+import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.NoSuchProviderException;
 import jakarta.mail.Session;
-import jakarta.mail.Store;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 
@@ -32,8 +33,6 @@ import jakarta.mail.internet.InternetAddress;
 public class SendEmail_Test {
   GreenMail greenMail;
   Session serverSession;
-  Store userSession;
-  Folder inbox;
   
   @BeforeAll
   void init() throws MessagingException, InterruptedException {
@@ -45,16 +44,10 @@ public class SendEmail_Test {
   @BeforeEach
   void setup() throws NoSuchProviderException, MessagingException {
     greenMail.setUser("george.jetson@spacely.com", "secret-pwd");
-    userSession = greenMail.getImap().createStore();
-    userSession.connect("george.jetson@spacely.com", "secret-pwd");
-    inbox = userSession.getFolder("INBOX");
-    inbox.open(Folder.READ_ONLY);
   }
   
   @AfterEach
   void reset() throws MessagingException {
-    inbox.close();
-    userSession.close();
     greenMail.reset();
   }
 
@@ -81,21 +74,25 @@ public class SendEmail_Test {
     action.addParameter("Send Email to", "george.jetson@spacely.com");
     action.addParameter("Send Email to", "rosie.robot@spacely.com");
     action.execute();
-    assertTrue(greenMail.waitForIncomingEmail(1));
-    Message[] receivedMessages = inbox.getMessages();
-    assertEquals(1, receivedMessages.length);
-    Message received = receivedMessages[0];
-    assertEquals("Rules Engine", received.getSubject());
-    assertEquals("An applicable rule sent this message.", received.getContent());
+    Message[] receivedMessages = greenMail.getReceivedMessagesForDomain("spacely.com");
+    assertEquals(2, receivedMessages.length);
+    Message georgeReceived = receivedMessages[0];
+    assertNull(georgeReceived.getRecipients(RecipientType.CC));
+    assertNull(georgeReceived.getRecipients(RecipientType.BCC));
+    Address[] addresses = georgeReceived.getRecipients(RecipientType.TO);
+    assertEquals(2, addresses.length);
+    assertEquals("george.jetson@spacely.com", addresses[0].toString());
+    assertEquals("rosie.robot@spacely.com", addresses[1].toString());
+    assertEquals("Rules Engine", georgeReceived.getSubject());
+    assertEquals("An applicable rule sent this message.", georgeReceived.getContent());
 
-    inbox.close();
-    userSession.close();
-    userSession.connect("rosie.robot@spacely.com", "secret-pwd");
-    inbox = userSession.getFolder("INBOX");
-    inbox.open(Folder.READ_ONLY);
-    receivedMessages = inbox.getMessages();
-    assertEquals(1, receivedMessages.length);
-    Message rosieReceived = receivedMessages[0];
+    Message rosieReceived = receivedMessages[1];
+    assertNull(rosieReceived.getRecipients(RecipientType.CC));
+    assertNull(rosieReceived.getRecipients(RecipientType.BCC));
+    addresses = rosieReceived.getRecipients(RecipientType.TO);
+    assertEquals(2, addresses.length);
+    assertEquals("george.jetson@spacely.com", addresses[0].toString());
+    assertEquals("rosie.robot@spacely.com", addresses[1].toString());
     assertEquals("Rules Engine", rosieReceived.getSubject());
     assertEquals("An applicable rule sent this message.", rosieReceived.getContent());
   }
@@ -105,8 +102,7 @@ public class SendEmail_Test {
     SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
     action.addParameter("Send Email to", "george.jetson@spacely.com");
     action.execute();
-    assertTrue(greenMail.waitForIncomingEmail(1));
-    Message[] receivedMessages = inbox.getMessages();
+    Message[] receivedMessages = greenMail.getReceivedMessagesForDomain("spacely.com");
     assertEquals(1, receivedMessages.length);
     Message received = receivedMessages[0];
     assertEquals("Rules Engine", received.getSubject());
@@ -121,22 +117,28 @@ public class SendEmail_Test {
     action.addParameter("Send Email to", "george.jetson@spacely.com");
     action.addParameter("Copy Email to", "rosie.robot@spacely.com");
     action.execute();
-    assertTrue(greenMail.waitForIncomingEmail(1));
 
-    Message[] receivedMessages = inbox.getMessages();
-    assertEquals(1, receivedMessages.length);
+    Message[] receivedMessages = greenMail.getReceivedMessagesForDomain("spacely.com");
+    assertEquals(2, receivedMessages.length);
     Message georgeReceived = receivedMessages[0];
+    assertNull(georgeReceived.getRecipients(RecipientType.BCC));
+    Address[] toAddresses = georgeReceived.getRecipients(RecipientType.TO);
+    assertEquals(1, toAddresses.length);
+    assertEquals("george.jetson@spacely.com", toAddresses[0].toString());
+    Address[] ccAddresses = georgeReceived.getRecipients(RecipientType.CC);
+    assertEquals(1, ccAddresses.length);
+    assertEquals("rosie.robot@spacely.com", ccAddresses[0].toString());
     assertEquals("Rules Engine", georgeReceived.getSubject());
     assertEquals("An applicable rule sent this message.", georgeReceived.getContent());  
 
-    inbox.close();
-    userSession.close();
-    userSession.connect("rosie.robot@spacely.com", "secret-pwd");
-    inbox = userSession.getFolder("INBOX");
-    inbox.open(Folder.READ_ONLY);
-    receivedMessages = inbox.getMessages();
-    assertEquals(1, receivedMessages.length);
-    Message rosieReceived = receivedMessages[0];
+    Message rosieReceived = receivedMessages[1];
+    assertNull(rosieReceived.getRecipients(RecipientType.BCC));
+    toAddresses = rosieReceived.getRecipients(RecipientType.TO);
+    assertEquals(1, toAddresses.length);
+    assertEquals("george.jetson@spacely.com", toAddresses[0].toString());
+    ccAddresses = rosieReceived.getRecipients(RecipientType.CC);
+    assertEquals(1, ccAddresses.length);
+    assertEquals("rosie.robot@spacely.com", ccAddresses[0].toString());
     assertEquals("Rules Engine", rosieReceived.getSubject());
     assertEquals("An applicable rule sent this message.", rosieReceived.getContent());
   }

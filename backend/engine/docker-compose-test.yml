@@ -1,7 +1,7 @@
 services:
-  db:
+  db_test:
     image: mysql:8.3.0
-    container_name: database_service
+    container_name: database_service_test
     volumes:
       - type: bind
         source: ./rules_dump.sql
@@ -16,38 +16,51 @@ services:
       - db_root_password
       - db_user_password
       - db_user_name
-  email:
-    image: axigen/axigen:latest
-    container_name: email_service
-    ports:
-      - 443:443
-      - 9443:9443
-    volumes:
-      - mail-data:/axigen/var
-  backend_service:
+  email_test:
+    image: greenmail/standalone:latest
+    container_name: email_service_test
+    env_file:
+      - greenmail.env
+
+  backend_service_test:
     build:
       context: ../../
       dockerfile: backend/engine/Dockerfile
     depends_on:
-      - db
-      - email
-    env_file:
-      - docker.env
+      - db_test
+      - email_test
     ports:
       - 8080:8080
       - 9990:9990
     secrets:
+      - db_host
+      - db_host_port
       - db_user_password
       - db_user_name
+      - engine_reload_key
+      - mail_from_address
+      - mail_host_port
+      - mail_host
+      - mail_server_password
 
 secrets:
+  db_host:
+    file: ../../secrets/db_host.txt
+  db_host_port:
+    file: ../../secrets/db_host_port.txt
   db_user_password:
     file: ../../secrets/db_user_password.txt
   db_root_password:
     file: ../../secrets/db_root_password.txt
   db_user_name:
     file: ../../secrets/db_user_name.txt
-
-volumes:
-  mail-data:
-    external: true
+  engine_reload_key:
+    file: ../../secrets/engine_reload_key.txt
+  mail_from_address:
+    file: ../../secrets/mail_from_address.txt
+  mail_host_port:
+    file: ../../secrets/mail_host_port.txt
+  mail_host:
+    file: ../../secrets/mail_host.txt
+  mail_server_password:
+    file: ../../secrets/mail_server_password.txt
