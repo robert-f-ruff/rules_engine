@@ -49,5 +49,14 @@ public class EngineResponse_Test {
     EngineResponse object1 = new EngineResponse(Engine.Status.IDLE);
     EngineResponse object2 = new EngineResponse(Engine.Status.IDLE);
     assertTrue(object1.equals(object2));
+    assertTrue(object1.hashCode() == object2.hashCode());
+  }
+
+  @Test
+  void test_Unequal_Objects() {
+    EngineResponse object1 = new EngineResponse(Engine.Status.IDLE);
+    EngineResponse object2 = new EngineResponse(Engine.Status.RUNNING);
+    assertFalse(object1.equals(object2));
+    assertFalse(object1.hashCode() == object2.hashCode());
   }
 }

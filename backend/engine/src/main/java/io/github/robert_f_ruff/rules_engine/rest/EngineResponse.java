@@ -52,4 +52,14 @@ public class EngineResponse {
     EngineResponse engineStatus = (EngineResponse)o;
     return Objects.equals(status, engineStatus.status);
   }
+
+  /**
+   * Returns a hash code value for the object.
+   * @return Hash code value for this object instance
+   * @since 1.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(status);
+  }
 }

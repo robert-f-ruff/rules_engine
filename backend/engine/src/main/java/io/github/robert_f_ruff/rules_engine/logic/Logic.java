@@ -1,7 +1,7 @@
 package io.github.robert_f_ruff.rules_engine.logic;
 
 /**
- * Public interface of a unit of logic
+ * Public interface of a unit of logic.
  * @author Robert F. Ruff
  * @version 1.0
  */

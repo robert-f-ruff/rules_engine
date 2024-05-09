@@ -61,4 +61,14 @@ public class EngineRequest {
     EngineRequest engineRequest = (EngineRequest)o;
     return Objects.equals(accessCode, engineRequest.accessCode);
   }
+
+  /**
+   * Returns a hash code value for the object.
+   * @return Hash code value for this object instance
+   * @since 1.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(accessCode);
+  }
 }

@@ -54,5 +54,14 @@ public class EngineRequest_Test {
     EngineRequest object1 = new EngineRequest("AAAAA");
     EngineRequest object2 = new EngineRequest("AAAAA");
     assertTrue(object1.equals(object2));
+    assertTrue(object1.hashCode() == object2.hashCode());
+  }
+
+  @Test
+  void test_Unequal_Objects() {
+    EngineRequest object1 = new EngineRequest("AAAAA");
+    EngineRequest object2 = new EngineRequest("BBBBB");
+    assertFalse(object1.equals(object2));
+    assertFalse(object1.hashCode() == object2.hashCode());
   }
 }

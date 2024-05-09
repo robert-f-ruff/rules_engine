@@ -37,7 +37,7 @@ public class RuleRepository {
 	
 	/**
 	 * Returns the criteria set.
-	 * @return List of @see loader.Criterion criteria to process
+	 * @return List of criteria to process
    * @since 1.0
 	 */
 	public ArrayList<Criterion> getCriteria() {
@@ -49,7 +49,7 @@ public class RuleRepository {
 
 	/**
 	 * Returns the rule set.
-	 * @return List of @see loader.Rule rules to process
+	 * @return List of rules to process
    * @since 1.0
 	 */
 	public HashMap<Long, Rule> getRules() {
