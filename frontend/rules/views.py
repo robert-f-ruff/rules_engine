@@ -299,7 +299,7 @@ def engine_reload(request: HttpRequest) -> JsonResponse | HttpResponseNotAllowed
     logger.warning('Invalid request method %s from %s', request.method, request.get_host())
     return HttpResponseNotAllowed(['GET'])
 
-def get_action_parameter_form(action_name: str, ruleaction_set_id: str ='',
+def get_action_parameter_form(action_name: str, ruleaction_set_id: str = '',
                               data: QueryDict | None = None) -> ActionParameterForm:
     """ This function will return a fully functional ActionParameterForm.
     """

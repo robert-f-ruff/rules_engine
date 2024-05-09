@@ -23,7 +23,7 @@ class ClientTestsEmptyDB(StaticLiveServerTestCase):
         super().setUpClass()
         cls.firefox = BrowserWebDriverContainer(
             capabilities=DesiredCapabilities.FIREFOX,  # type: ignore
-            image='selenium/standalone-firefox')
+            image='seleniarm/standalone-firefox')
         cls.firefox.start()
         cls.selenium = cls.firefox.get_driver()
 
@@ -567,7 +567,7 @@ class ClientTestsPopulatedDB(StaticLiveServerTestCase):
         super().setUpClass()
         cls.firefox = BrowserWebDriverContainer(
             capabilities=DesiredCapabilities.FIREFOX,  # type: ignore
-            image='selenium/standalone-firefox')
+            image='seleniarm/standalone-firefox')
         cls.firefox.start()
         cls.selenium = cls.firefox.get_driver()
 

@@ -134,7 +134,7 @@ class ActionParameterForm(Form):
     def save(self, rule_action: RuleActions) -> None:
         """ This function will save the data stored in this form.
         """
-        logger.debug('ActionParameterForm.save(rule_action=%s) called', rule_action.__str__())
+        logger.debug('ActionParameterForm.save(rule_action=%s) called', str(rule_action))
         for number in range(1, self.cleaned_data[self._parameter_count] + 1):
             id_number = number
             while (self._prefix + 'parameter_name-' + str(id_number)) not in self.cleaned_data:
@@ -150,5 +150,5 @@ class ActionParameterForm(Form):
                     parameter=parameter,
                     parameter_value=parameter_value
                 )
-                logger.debug('ActionParameterForm: Saving %s', rule_action_parameter.__str__())
+                logger.debug('ActionParameterForm: Saving %s', str(rule_action_parameter))
                 rule_action_parameter.save()
