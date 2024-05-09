@@ -66,6 +66,9 @@ A Docker Compose file (`docker-compose-supporting_services.yml`) is provided tha
    ```Shell
    ./initialize_environment.sh
    ```
+3. Obtain and configure access to the Red Hat Quay Container Registry:
+   1. If you do not have a Red Hat account, sign up for a free account by clicking on the SIGN IN button on the [registry's homepage](https://quay.io/tutorial/).
+   2. The [tutorial](https://quay.io/tutorial/) contains instructions on adding the registry to Docker.
 
 ## Launch the Application Containers
 Before launching the system, both in full or in part, verify the contents of the `secrets/db_host.txt`, `secrets/engine_host.txt`, and `secrets/mail_host.txt` files are correct according to the following tables. 
