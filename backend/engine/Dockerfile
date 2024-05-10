@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM maven:3.9.6-eclipse-temurin-21 as deps
+FROM ubuntu:latest as deps
 
 WORKDIR /build
 
@@ -11,22 +11,8 @@ RUN apt-get update -y \
 
 RUN unzip *
 
-RUN --mount=type=bind,source=backend/engine/pom.xml,target=pom.xml \
-    --mount=type=cache,target=/root/.m2 \
-    mvn dependency:go-offline -DskipTests
-
-FROM deps as package
-
-WORKDIR /build
-
-COPY backend/engine/src src
-
-RUN --mount=type=bind,source=backend/engine/pom.xml,target=pom.xml \
-    --mount=type=cache,target=/root/.m2 \
-    mvn package -DskipTests
-
 FROM quay.io/wildfly/wildfly-runtime:latest-jdk21 as final
-COPY --chown=jboss:root --from=package build/target/server $JBOSS_HOME
+COPY --chown=jboss:root backend/engine/target/server/ $JBOSS_HOME
 RUN chmod -R ug+rwX $JBOSS_HOME
 
 WORKDIR /config
