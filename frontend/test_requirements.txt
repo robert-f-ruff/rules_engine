@@ -6,3 +6,4 @@ Requests==2.31.0
 requests_mock==1.12.1
 selenium==4.19.0
 testcontainers==4.4.0
+coverage==7.4.4
