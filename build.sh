@@ -2,8 +2,19 @@
 usage="$(basename "$0") [-h] [-f compose_file_name] -- build the rules engine
 
 where:
-    -h show this help text
-    -f set the Docker compose file to use"
+    -h: show this help text
+    -f: the Docker compose file to build from"
+
+function prepare_frontend {
+  echo "Preparing the frontend for construction:"
+  (cd frontend && exec python3 manage.py collectstatic --noinput)
+}
+
+function prepare_backend {
+  echo "Preparing the backend for construction:"
+  (cd backend/engine && exec mvn clean package)
+}
+
 while getopts ':hf:' option; do
   case "$option" in
     h) echo "$usage"
@@ -31,6 +42,13 @@ if [ -z ${file+x} ]; then
   echo "$usage"
   exit 1
 fi
-echo "Preparing the frontend for construction..."
-(cd frontend && exec python3 manage.py collectstatic --noinput)
+case "$file" in
+  *frontend*) prepare_frontend
+              ;;
+   *backend*) prepare_backend
+              ;;
+   *) prepare_frontend
+      prepare_backend
+      ;;
+esac
 docker compose -f $file up --build --detach
