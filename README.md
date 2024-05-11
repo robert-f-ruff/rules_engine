@@ -31,12 +31,17 @@ During setup, the initialization script will walk you through populating the tex
 - `secrets/db_user_name.txt`: This stores the username the applications use to access the database server.
 - `secrets/db_user_password.txt`: This stores the password for the applications' user account.
 - `secrets/django_secret_key.txt`: This stores the key Django uses to secure signed data.
+- `secrets/django_super_user_email.txt`: This stores the email address to assign to the super user account.
+- `secrets/django_super_user_name.txt`: This stores the username to assign to the super user account.
+- `secrets/django_super_user_password.txt`: This stores teh password for the super user account.
 - `secrets/engine_host.txt`: This stores the address to use in connecting to the backend Java application; an appropriate default value is populated by the script.
 - `secrets/engine_reload_key.txt`: This stores the key the backend Java application uses to verify reload requests.
 - `secrets/mail_from_address.txt`: This stores the email address to use in connecting to the email service (should be fake).
 - `secrets/mail_host_port.txt`: This stores the port number on the email server that the Simple Mail Transport Protocol (SMTP) service listens on; an appropriate default value is populated by the script.
 - `secrets/mail_host.txt`: This stores the address to use in connecting to the email server; an appropriate default value is populated by the script.
 - `secrets/mail_server_password.txt`: This stores the password for the email account used in connecting to the email service.
+- `secrets/wildfly_user_name.txt`: This stores the user name for the WildFly server management user.
+- `secrets/wildfly_user_password.txt`: This stores the password for the WildFly server management user's password.
 
 ## Setup Environment
 A Docker Compose file (`docker-compose-supporting_services.yml`) is provided that will launch the supporting services:
@@ -66,6 +71,7 @@ A Docker Compose file (`docker-compose-supporting_services.yml`) is provided tha
    ```Shell
    ./initialize_environment.sh
    ```
+   
 3. Obtain and configure access to the Red Hat Quay Container Registry:
    1. If you do not have a Red Hat account, sign up for a free account by clicking on the SIGN IN button on the [registry's homepage](https://quay.io/tutorial/).
    2. The [tutorial](https://quay.io/tutorial/) contains instructions on adding the registry to Docker.
@@ -186,15 +192,9 @@ Before launching the system, both in full or in part, verify the contents of the
   ```
 
 - To launch just the Java backend:
-  > :warning: If you have not launched the Python frontend at least once before launching the Java backend, execute the following commands **before** launching the backend:
-  > 
-  > ```Shell
-  > python3 frontend/manage.py migrate
-  > python3 frontend/manage.py loaddata actions_parameters
-  > ```
 
   ```Shell
-  docker compose -f backend/engine/docker-compose-service.yml up --build --detach
+  ./build.sh -f backend/engine/docker-compose-service.yml
   ```
 
 - To launch the full system, with the supporting services:

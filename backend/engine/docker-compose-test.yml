@@ -42,6 +42,8 @@ services:
       - mail_host_port
       - mail_host
       - mail_server_password
+      - wildfly_user_name
+      - wildfly_user_password
 
 secrets:
   db_host:
@@ -64,3 +66,7 @@ secrets:
     file: ../../secrets/mail_host.txt
   mail_server_password:
     file: ../../secrets/mail_server_password.txt
+  wildfly_user_name:
+    file: ../../secrets/wildfly_user_name.txt
+  wildfly_user_password:
+    file: ../../secrets/wildfly_user_password.txt
