@@ -172,7 +172,6 @@ Before launching the system, both in full or in part, verify the contents of the
    </tbody>
 </table>
 
-
 - To launch the supporting services:
 
    ```Shell
@@ -202,3 +201,69 @@ Before launching the system, both in full or in part, verify the contents of the
   ```Shell
   ./build.sh -f docker-compose-demonstration.yml
   ```
+
+## Open the Frontend Web Pages
+
+- The Rules Manager page is used to manage the ruleset. Navigate to [http://127.0.0.1:8000/rules/](http://127.0.0.1:8000/rules/).
+
+- The Django Admin page is used to define criteria and actions. Navigate to [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/).
+
+## Enhancing the Rules Engine
+
+The following sections explain how to add a new criterion and a new action to the Rules Engine.
+
+### Add a New Criterion
+
+1. Select the appropriate class in the logic package:
+   - The ObservationLogic class evaluates patient-related measurement data, such as weight.
+   - The PatientLogic class evaluates patient-related attribute data, such as age.
+   - Create a new class in the logic package that implements the Logic interface:
+     - The evaluate method should verify that the requested criterion exists in the registry, cast the data object into the correct class and store a class reference to it, then execute the method reference in the registry, passing it the check (or compare) value, and then return the boolean value returned by the method.
+2. Add a private method to evaluate the data:
+   - The method should access the class data object reference and compare the checkValue parameter to the appropriate data object attribute.
+   - Returns the result of the comparison as a boolean value.
+3. Update the class registry: The registry maps class method references to names accessed in the rules_criterion.logic database field.
+   - The registry key is the method name, and the value is the method reference.
+   - The registry is initialized in the default class constructor.
+4. Add an entry to the rules_criterion database table:
+   1. Navigate to the [Django Admin](http://127.0.0.1:8000/admin/) page.
+   2. Click on the Add button to the right of Criteria under the Rules section in the left-side navigation panel.
+      - The name field should describe the type of comparison that will be performed and should contain the type of data that is expected. For example, `Patient is Female`.
+      - The logic field stores the logic string and is formatted as:
+
+      ```Java
+      Class_Name.method_name=check_value
+      ```
+
+      where `Class_Name` is the name of the class in the logic package, `method_name` is the name of the method created in step #2, and `check_value` is the value to compare the data attribute to. For example:
+
+      ```Java
+      PatientLogic.ageGreaterThan=40
+      ```
+
+   3. Click on the Save button in the Add criterion panel.
+5. Update the `frontend/fixtures/actions_parameters.json` file to include the new criterion:
+
+   ```Shell
+   python3 frontend/manage.py dumpdata --exclude admin --exclude auth --exclude contenttypes --exclude sessions --exclude messages --exclude staticfiles > ./rules/fixtures/actions_parameters.json
+   ```
+
+### Add a New Action
+
+1. Create a new class in the actions package that implements the Action interface:
+   - The parameters for the action should be stored in private class references.
+2. Add entries to the following database tables:
+   1. Navigate to the [Django Admin](http://127.0.0.1:8000/admin/) page.
+   2. Click on the Add button to the right of Actions under the Rules section in the left-side navigation section.
+      - The function field stores the name of the class created in step #1.
+      - The parameter number field stores the display sequence of the parameters in the Rules Manager frontend page.
+   3. Click on the plus icon to the right of the Parameter field to add a new parameter.
+      - The required field is used by the Rules Manager frontend page to ensure the user enters a value when the action requires this parameter.
+      - The help_text field is displayed on the Rules Manager frontend page to explain to the user why the parameter is needed and/or how it is used.
+   4. Click on the Save button in the parameter pop-up window.
+   5. Click on the Save button in the Change action panel.
+3. Update the `frontend/fixtures/actions_parameters.json` file to include the new action and parameters:
+
+   ```Shell
+   python3 frontend/manage.py dumpdata --exclude admin --exclude auth --exclude contenttypes --exclude sessions --exclude messages --exclude staticfiles > ./rules/fixtures/actions_parameters.json
+   ```
