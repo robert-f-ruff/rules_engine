@@ -84,8 +84,8 @@ class RuleView(View):
         super().__init__(**kwargs)
         self.template_name = ''
         self.rule = None
-        self.rule_form = None
-        self.rule_actions_formset = None
+        self.rule_form = RuleForm()
+        self.rule_actions_formset = RuleActionsFormSet()
         self.parameter_formsets = []
         self.parameter_forms = []
         self.forms_to_save = {'form_sets': [], 'forms': []}
@@ -126,66 +126,23 @@ class RuleView(View):
         if rule_id > 0:
             self.rule = get_object_or_404(Rule, pk=rule_id)
         self.set_template_name()
+
         self.rule_form = RuleForm(data=request.POST, instance=self.rule)
-        self.rule_actions_formset = RuleActionsFormSet(data=request.POST,
-                                                       instance=self.rule_form.instance)
-        if not self.rule_form.is_valid() or not self.rule_actions_formset.is_valid():
-            all_pass = False
-        else:
-            modified = self.rule_form.has_changed()
-        ruleactions_form_count = int(request.POST.get('ruleactions_set-TOTAL_FORMS','0'))
-        for form_id in range(0, ruleactions_form_count):
-            rule_action_form = self.rule_actions_formset[form_id]
-            if not modified:
-                modified = rule_action_form.has_changed()
-            if request.POST.get('ruleactions_set-' + str(form_id) + '-id', '') != '':
-                formset = ActionParametersFormSet(data=request.POST,
-                            instance=rule_action_form.instance,
-                            prefix='param' + str(rule_action_form.instance.pk))
-                self.parameter_formsets.append(formset)
-                if not formset.is_valid():
-                    all_pass = False
-                else:
-                    if rule_action_form.cleaned_data.get('DELETE'):
-                        for form in formset:
-                            if form.has_changed():
-                                form.add_error(None, self.ACT_DELETE_PARAMETER_CHANGE)
-                                all_pass = False
-                    else:
-                        self.forms_to_save['form_sets'].append(
-                                                        self.parameter_formsets.index(formset))
-                        if not modified:
-                            modified = formset.has_changed()
-            else:
-                self.parameter_formsets.append(None)
-            if int(request.POST.get(ActionParameterForm.get_prefix(form_id)
-                                    + 'parameter_count', 0)) > 0:
-                parameter_form = self.get_part_action_parameter_form(data=request.POST,
-                                                            rule_action_form=rule_action_form)
-                if parameter_form is None:
-                    parameter_form = get_action_parameter_form(
-                        action_name=rule_action_form['action'].value(),
-                        ruleaction_set_id=str(form_id),
-                        data=request.POST
-                    )
-                self.parameter_forms.append(parameter_form)
-                if not parameter_form.is_valid():
-                    all_pass = False
-                else:
-                    self.forms_to_save['forms'].append(self.parameter_forms.index(parameter_form))
-                    if not modified:
-                        modified = parameter_form.has_changed()
-            else:
-                self.parameter_forms.append(None)
+        all_pass = self.rule_form.is_valid()
+        modified = self.rule_form.has_changed()
+
+        all_pass, modified = self.validate_action_forms(request, all_pass=all_pass,
+                                                        modified=modified)
+
         if all_pass:
             logger.debug('All forms are valid, saving forms')
             self.rule_form.save()
             if rule_id == 0:
                 logger.info('Created rule #%i %s', self.rule_form.instance.pk,
-                            self.rule_form.instance.name) # type: ignore
+                            self.rule_form.instance.name)
             else:
                 logger.info('Updated rule #%i %s', self.rule_form.instance.pk,
-                            self.rule_form.instance.name) # type: ignore
+                            self.rule_form.instance.name)
             self.rule_actions_formset.save()
             for index in self.forms_to_save['form_sets']:
                 self.parameter_formsets[index].save()
@@ -200,6 +157,85 @@ class RuleView(View):
                     request.session[key] = call_status.get(key)
             return redirect('rules:index')
         return render(request, self.template_name, self.get_context_data())
+
+    def validate_action_forms(self, request: HttpRequest, all_pass: bool=True,
+                              modified: bool=False) -> (tuple[bool, bool]):
+        """ This function validates the rule_action forms submitted by the client.
+        """
+        self.rule_actions_formset = RuleActionsFormSet(data=request.POST,
+                                                       instance=self.rule_form.instance)
+
+        if not self.rule_actions_formset.is_valid():
+            all_pass = False
+
+        ruleactions_form_count = int(request.POST.get('ruleactions_set-TOTAL_FORMS','0'))
+        for form_id in range(0, ruleactions_form_count):
+            rule_action_form = self.rule_actions_formset[form_id]
+            if not modified:
+                modified = rule_action_form.has_changed()
+            all_pass, modified = self.validate_parameter_formset(request=request,
+                                                                 all_pass=all_pass,
+                                                                 modified=modified,
+                                                                 form_id=form_id)
+            all_pass, modified = self.validate_parameter_form(request=request,
+                                                              all_pass=all_pass,
+                                                              modified=modified,
+                                                              form_id=form_id)
+        return (all_pass, modified)
+
+    def validate_parameter_formset(self, request: HttpRequest, all_pass: bool=True,
+                              modified: bool=False, form_id: int=0) -> (tuple[bool, bool]):
+        """ This function validates the parameter formsets submitted by the client.
+        """
+        if request.POST.get('ruleactions_set-' + str(form_id) + '-id', '') != '':
+            rule_action_form = self.rule_actions_formset[form_id]
+            formset = ActionParametersFormSet(data=request.POST,
+                        instance=rule_action_form.instance,
+                        prefix='param' + str(rule_action_form.instance.pk))
+            self.parameter_formsets.append(formset)
+            if not formset.is_valid():
+                all_pass = False
+            else:
+                if rule_action_form.cleaned_data.get('DELETE'):
+                    for form in formset:
+                        if form.has_changed():
+                            form.add_error(None, self.ACT_DELETE_PARAMETER_CHANGE)
+                            all_pass = False
+                else:
+                    self.forms_to_save['form_sets'].append(
+                                                    self.parameter_formsets.index(formset))
+                    if not modified:
+                        modified = formset.has_changed()
+        else:
+            self.parameter_formsets.append(None)
+        return (all_pass, modified)
+
+    def validate_parameter_form(self, request: HttpRequest, all_pass: bool=True,
+                                modified: bool=False, form_id: int=0) -> (tuple[bool, bool]):
+        """ This function validates the parameter forms submitted by the client.
+        """
+        if int(request.POST.get(ActionParameterForm.get_prefix(form_id)
+                                + 'parameter_count', 0)) > 0:
+            rule_action_form = self.rule_actions_formset[form_id]
+            parameter_form = self.get_part_action_parameter_form(data=request.POST,
+                                                        rule_action_form=rule_action_form)
+            if parameter_form is None:
+                parameter_form = get_action_parameter_form(
+                    action_name=rule_action_form['action'].value(),
+                    ruleaction_set_id=str(form_id),
+                    data=request.POST
+                )
+            self.parameter_forms.append(parameter_form)
+            if not parameter_form.is_valid():
+                all_pass = False
+            else:
+                self.forms_to_save['forms'].append(self.parameter_forms.index(parameter_form))
+                if not modified:
+                    modified = parameter_form.has_changed()
+        else:
+            self.parameter_forms.append(None)
+
+        return (all_pass, modified)
 
     def get_context_data(self) -> dict[str, Any]:
         """ This function returns the context dictionary with all the
@@ -255,9 +291,8 @@ class RuleView(View):
                     ruleaction_set_id=
                         self.rule_actions_formset.forms.index(rule_action_form) # type: ignore
                 )
-            else:
-                logger.debug('No missing parameters for rule action ID #%i',
-                             rule_action_form.instance.pk)
+            logger.debug('No missing parameters for rule action ID #%i',
+                            rule_action_form.instance.pk)
         return None
 
 def parameters(request: HttpRequest, action_name: str) -> JsonResponse | HttpResponseNotAllowed:

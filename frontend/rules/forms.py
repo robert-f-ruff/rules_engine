@@ -40,7 +40,7 @@ class RuleActionsForm(ModelForm):
         """ This function executes when the form is created.
         """
         super().__init__(*args, **kwargs)
-        self.fields['action'].empty_label = ''
+        self.fields['action'].empty_label = '' # type: ignore
 
 
 RuleActionsFormSet = inlineformset_factory(Rule,
