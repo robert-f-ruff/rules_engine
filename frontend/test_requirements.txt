@@ -5,5 +5,5 @@ python-dotenv==1.0.1
 Requests==2.32.3
 requests_mock==1.12.1
 selenium==4.25.0
-testcontainers==4.8.2
+testcontainers[mysql]==4.8.2
 coverage==7.6.3
