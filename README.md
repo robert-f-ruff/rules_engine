@@ -12,9 +12,9 @@ The goal of this project is to demonstrate my knowledge of modern programming la
 
 ## Prerequisites
 Install the following tools:
-- [Python v3.12](https://www.python.org)
+- [Python v3.13](https://www.python.org)
 - [Java Development Kit (JDK) 21](https://www.oracle.com/java/technologies/downloads/)
-- [Apache Maven v3.9.6](https://maven.apache.org/download.cgi)
+- [Apache Maven v3.9.9](https://maven.apache.org/download.cgi)
 - Latest version of [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ### WildFly Configure v1.0.0
