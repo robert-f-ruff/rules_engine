@@ -1,7 +1,6 @@
 services:
   db_test:
     image: mysql:8.4.2
-    container_name: database_service_test
     volumes:
       - type: bind
         source: ./rules_dump.sql
@@ -18,7 +17,6 @@ services:
       - db_user_name
   email_test:
     image: greenmail/standalone:latest
-    container_name: email_service_test
     env_file:
       - greenmail.env
 

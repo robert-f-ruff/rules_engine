@@ -17,7 +17,7 @@ RUN chmod -R ug+rwX $JBOSS_HOME
 
 WORKDIR /config
 COPY --chown=jboss:root backend/engine/wildfly_config.yml.tmpl .
-COPY --chown=jboss:root backend/engine/wildfly-configuration-1.0.jar .
+COPY --chown=jboss:root backend/engine/wildfly-configuration-1.0.1.jar .
 COPY --chown=jboss:root --from=deps /build/mysql-connector-j-9.0.0/mysql-connector-j-9.0.0.jar /config/
 COPY --chown=jboss:root backend/engine/initialize.sh .
 

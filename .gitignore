@@ -131,4 +131,4 @@ dmypy.json
 .vscode/settings.json
 
 frontend/web_server/static/
-backend/engine/wildfly-configuration-1.0.jar
+backend/engine/wildfly-configuration-*.jar

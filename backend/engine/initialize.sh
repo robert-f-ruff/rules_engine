@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Initialize WildFly standalone.xml template and verify database connection
-java -cp /config/wildfly-configuration-1.0.jar:/config/mysql-connector-j-8.3.0.jar io.github.robert_f_ruff.wildfly_configuration.Main \
+java -cp /config/wildfly-configuration-1.0.1.jar:/config/mysql-connector-j-9.0.0.jar io.github.robert_f_ruff.wildfly_configuration.Main \
     /config/wildfly_config.yml.tmpl /config/wildfly_config.yml /run/secrets/
 
 #Add management user

@@ -17,7 +17,7 @@ if __name__ == "__main__":
                         dbname='test_rules') as mysql:
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rules.tests.settings'
         os.environ['MYSQL_HOST'] = '127.0.0.1'
-        os.environ['MYSQL_HOST_PORT'] = mysql.get_exposed_port(3306)
+        os.environ['MYSQL_HOST_PORT'] = str(mysql.get_exposed_port(3306))
         django.setup()
         TestRunner = get_runner(settings)
         test_runner = TestRunner()
