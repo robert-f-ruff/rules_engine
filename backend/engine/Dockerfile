@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM ubuntu:latest as deps
+FROM ubuntu:latest AS deps
 
 WORKDIR /build
 
@@ -11,7 +11,7 @@ RUN apt-get update -y \
 
 RUN unzip *
 
-FROM quay.io/wildfly/wildfly-runtime:latest-jdk21 as final
+FROM quay.io/wildfly/wildfly-runtime:latest-jdk21 AS final
 COPY --chown=jboss:root backend/engine/target/server/ $JBOSS_HOME
 RUN chmod -R ug+rwX $JBOSS_HOME
 
