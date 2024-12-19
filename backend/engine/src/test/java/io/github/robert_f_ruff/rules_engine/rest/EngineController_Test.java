@@ -12,13 +12,13 @@ import org.junit.jupiter.api.Test;
 import io.github.robert_f_ruff.rules_engine.Engine;
 import io.github.robert_f_ruff.rules_engine.loader.RuleRepository;
 
-public class EngineResource_Test {
+public class EngineController_Test {
   @Test
   void test_Engine_Status() {
     Engine engine = mock();
     when(engine.getStatus()).thenReturn(Engine.Status.IDLE);
     RuleRepository repository = mock();
-    EngineResource resource = new EngineResource(engine, repository, "AAAAA");
+    EngineController resource = new EngineController(engine, repository, "AAAAA");
     EngineResponse expected = new EngineResponse(Engine.Status.IDLE);
     assertTrue(expected.equals(resource.getStatus()));
   }
@@ -28,8 +28,8 @@ public class EngineResource_Test {
     Engine engine = mock();
     when(engine.getStatus()).thenReturn(Engine.Status.RUNNING).thenReturn(Engine.Status.IDLE);
     RuleRepository repository = mock();
-    EngineResource resource = new EngineResource(engine, repository, "AAAAA");
-    EngineResponse expected = new EngineResponse(EngineResource.Status.OK);
+    EngineController resource = new EngineController(engine, repository, "AAAAA");
+    EngineResponse expected = new EngineResponse(EngineController.Status.OK);
     assertTrue(expected.equals(resource.reloadRules(new EngineRequest("AAAAA"))));
   }
 
@@ -40,9 +40,9 @@ public class EngineResource_Test {
       Engine engine = mock();
       when(engine.getStatus()).thenReturn(Engine.Status.RUNNING).thenReturn(Engine.Status.IDLE);
       RuleRepository repository = mock();
-      EngineResource resource = new EngineResource(engine, repository, "AAAAA");
+      EngineController resource = new EngineController(engine, repository, "AAAAA");
       EngineResponse result = resource.reloadRules(new EngineRequest("AAAAA"));
-      if (result.equals(new EngineResponse(EngineResource.Status.OK))) {
+      if (result.equals(new EngineResponse(EngineController.Status.OK))) {
         successfulResult.set(true);
       }
     };
@@ -63,13 +63,13 @@ public class EngineResource_Test {
     Engine engine = mock();
     when(engine.getStatus()).thenReturn(Engine.Status.RUNNING).thenReturn(Engine.Status.IDLE);
     RuleRepository repository = mock();
-    EngineResource resource = new EngineResource(engine, repository, "AAAAA");
-    EngineResponse expected = new EngineResponse(EngineResource.Status.FAILED);
+    EngineController resource = new EngineController(engine, repository, "AAAAA");
+    EngineResponse expected = new EngineResponse(EngineController.Status.FAILED);
     assertTrue(expected.equals(resource.reloadRules(new EngineRequest("BBBBB"))));
   }
 
   @Test
   void test_Default_Constructor() {
-    assertDoesNotThrow(() -> new EngineResource());
+    assertDoesNotThrow(() -> new EngineController());
   }
 }

@@ -20,7 +20,7 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Path("engine")
-public class EngineResource {
+public class EngineController {
   /**
    * Identifies the possible statuses returned by this resource.
    * @since 1.0
@@ -81,7 +81,7 @@ public class EngineResource {
    * @since 1.0
    */
   @Inject
-  public EngineResource(Engine engine, RuleRepository repository,
+  public EngineController(Engine engine, RuleRepository repository,
       @ConfigProperty(name = "rules_engine_Reload_Rules_Key") String key) {
     this.repository = repository;
     this.engine = engine;
@@ -92,7 +92,7 @@ public class EngineResource {
    * New instance of EngineResource.
    * @since 1.0
    */
-  public EngineResource() {
+  public EngineController() {
     this.repository = null;
     this.engine = null;
     this.key = "";

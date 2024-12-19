@@ -21,7 +21,7 @@ import jakarta.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("data")
-public class DataResource {
+public class DataController {
   Engine engine;
 
   /**
@@ -34,7 +34,7 @@ public class DataResource {
   @Path("patient")
   public EngineResponse processPatient(@NotNull @Valid PatientData patient) {
       engine.run(patient);
-      return new EngineResponse(EngineResource.Status.OK);
+      return new EngineResponse(EngineController.Status.OK);
   }
 
   /**
@@ -47,7 +47,7 @@ public class DataResource {
   @Path("observation")
   public EngineResponse processObservation(@NotNull @Valid ObservationData observation) {
       engine.run(observation);
-      return new EngineResponse(EngineResource.Status.OK);
+      return new EngineResponse(EngineController.Status.OK);
   }
 
   /**
@@ -56,7 +56,7 @@ public class DataResource {
    * @since 1.0
    */
   @Inject
-  public DataResource(Engine engine) {
+  public DataController(Engine engine) {
     this.engine = engine;
   }
 
@@ -64,7 +64,7 @@ public class DataResource {
    * New instance of DataResource.
    * @since 1.0
    */
-  public DataResource() {
+  public DataController() {
     this.engine = null;
   }
 }
