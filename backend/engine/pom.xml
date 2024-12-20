@@ -27,6 +27,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.wildfly.bom</groupId>
+        <artifactId>wildfly-expansion</artifactId>
+        <version>34.0.1.Final</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -38,22 +45,19 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.microprofile</groupId>
-      <artifactId>microprofile</artifactId>
-      <version>6.1</version>
-      <type>pom</type>
+      <groupId>org.eclipse.microprofile.config</groupId>
+      <artifactId>microprofile-config-api</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.microprofile.config</groupId>
-      <artifactId>microprofile-config-api</artifactId>
-      <version>3.1</version>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-maven-plugin</artifactId>
-        <version>5.0.0.Final</version>
+        <version>5.1.0.Final</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -87,6 +91,11 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -142,99 +151,102 @@
         </plugin>
         <plugin>
           <artifactId>wildfly-maven-plugin</artifactId>
-          <version>5.0.0.Final</version>
+          <version>5.1.0.Final</version>
         </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
       <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.8.12</version>
-          <executions>
-            <execution>
-              <id>default-prepare-agent</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>default-report</id>
-              <phase>test</phase>
-              <goals>
-                <goal>report</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <executions>
-            <execution>
-              <goals>
-                <goal>properties</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>copy-dependency-for-docker</id>
-              <goals>
-                <goal>copy</goal>
-              </goals>
-              <phase>package</phase>
-              <configuration>
-                <artifact>io.github.robert_f_ruff:wildfly-configuration:1.0.1</artifact>
-                <outputDirectory>${project.basedir}</outputDirectory>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <executions>
-            <execution>
-              <goals>
-                <goal>integration-test</goal>
-                <goal>verify</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.wildfly.plugins</groupId>
-          <artifactId>wildfly-maven-plugin</artifactId>
-          <version>5.0.0.Final</version>
-          <configuration>
-            <feature-packs>
-              <feature-pack>
-                <location>org.wildfly:wildfly-galleon-pack:31.0.1.Final</location>
-              </feature-pack>
-              <feature-pack>
-                <location>org.wildfly:wildfly-datasources-galleon-pack:8.0.0.Final</location>
-              </feature-pack>
-            </feature-packs>
-            <layers>
-              <layer>jaxrs-server</layer>
-              <layer>mysql-driver</layer>
-              <layer>mail</layer>
-            </layers>
-          </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>package</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.12</version>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>properties</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>copy-dependency-for-docker</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <artifact>io.github.robert_f_ruff:wildfly-configuration:1.0.1</artifact>
+              <outputDirectory>${project.basedir}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-maven-plugin</artifactId>
+        <version>5.1.0.Final</version>
+        <configuration>
+          <feature-packs>
+            <feature-pack>
+              <location>org.wildfly:wildfly-galleon-pack:34.0.1.Final</location>
+            </feature-pack>
+            <feature-pack>
+              <location>org.wildfly:wildfly-datasources-galleon-pack:9.0.0.Final</location>
+            </feature-pack>
+          </feature-packs>
+          <layers>
+            <layer>cdi</layer>
+            <layer>jaxrs-server</layer>
+            <layer>mysql-driver</layer>
+            <layer>mail</layer>
+            <layer>microprofile-config</layer>
+            <layer>web-console</layer>
+          </layers>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>package</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
