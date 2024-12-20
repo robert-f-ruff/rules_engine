@@ -172,6 +172,7 @@ public class SendEmail_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() throws ActionException, AddressException {
     SendEmail object1 = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));

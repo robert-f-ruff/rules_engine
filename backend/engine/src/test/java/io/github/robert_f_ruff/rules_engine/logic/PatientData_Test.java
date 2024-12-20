@@ -42,6 +42,7 @@ public class PatientData_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() {
     PatientData object1 = new PatientData(Gender.FEMALE, "1999-04-15");

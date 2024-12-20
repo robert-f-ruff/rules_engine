@@ -33,6 +33,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class RulesEngineBackendIT {
   private static ToStringConsumer logOutput = new ToStringConsumer();
+  /*
+   * Resource leak: '<unassigned Closeable value>' is never closed
+   * This warning is a false-positive, as the @Container annotation
+   * controls the lifecycle of the container. This results from the
+   * .withLogConsumer() call in the chain.
+   */
+  @SuppressWarnings("resource")
   @Container
   public static ComposeContainer environment
       = new ComposeContainer(new File("docker-compose-test.yml"))

@@ -78,6 +78,7 @@ public class Criterion_Test {
     assertFalse(criterion.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() {
     ActionStub object2 = new ActionStub();

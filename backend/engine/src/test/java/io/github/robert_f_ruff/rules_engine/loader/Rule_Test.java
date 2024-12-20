@@ -161,6 +161,7 @@ class Rule_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() throws LogicFactoryException, ActionFactoryException, ParameterException, ActionException {
     Rule object1 = aRule().build();

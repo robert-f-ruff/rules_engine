@@ -42,6 +42,7 @@ public class EngineRequest_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() {
     EngineRequest object1 = new EngineRequest("AAAAA");

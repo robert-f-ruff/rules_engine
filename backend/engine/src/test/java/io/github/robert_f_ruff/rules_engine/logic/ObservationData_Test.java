@@ -41,6 +41,7 @@ public class ObservationData_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() {
     ObservationData object1 = new ObservationData(new BigDecimal(150), new BigDecimal(100));

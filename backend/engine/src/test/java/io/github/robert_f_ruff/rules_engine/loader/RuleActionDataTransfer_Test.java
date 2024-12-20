@@ -25,6 +25,7 @@ public class RuleActionDataTransfer_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() {
     RuleActionDataTransfer object1 = aRuleActionRecord().build();

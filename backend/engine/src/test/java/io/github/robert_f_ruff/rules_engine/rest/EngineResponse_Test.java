@@ -37,6 +37,7 @@ public class EngineResponse_Test {
     assertFalse(object1.equals(object2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() {
     EngineResponse object1 = new EngineResponse(Engine.Status.IDLE);
