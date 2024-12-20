@@ -1,13 +1,10 @@
 package io.github.robert_f_ruff.rules_engine.actions;
 
-import jakarta.enterprise.context.Dependent;
-
 /**
  * Public interface of an act.
  * @author Robert F. Ruff
  * @version 1.0
  */
-@Dependent
 public interface Action {
   /**
    * Set a parameter that controls the behavior of the action.
