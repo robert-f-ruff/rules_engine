@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Defines a single record returned from the database by the RuleActions named query.
  * @author Robert F. Ruff
- * @version 1.0
+ * @version 1.1
  */
 public class RuleActionDataTransfer {
   private Long ruleId;
@@ -77,12 +77,12 @@ public class RuleActionDataTransfer {
    * @param actionFunction Name of the class implementing the Action interface to execute
    * @param parameterName The name of a parameter for this action
    * @param parameterValue The value of this parameter
-   * @since 1.0
+   * @since 1.1
    */
-  public RuleActionDataTransfer(Long ruleId, Integer actionSequenceNumber, String actionName,
+  public RuleActionDataTransfer(Long ruleId, Short actionSequenceNumber, String actionName,
       String actionFunction, String parameterName, String parameterValue) {
     this.ruleId = ruleId;
-    this.actionSequenceNumber = actionSequenceNumber;
+    this.actionSequenceNumber = (int) actionSequenceNumber;
     this.actionName = actionName;
     this.actionFunction = actionFunction;
     this.parameterName = parameterName;

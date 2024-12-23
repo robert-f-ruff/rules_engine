@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "rules_engine.from_address",
+    "type": "java.lang.String",
+    "description": "The email address to use as the originator of email messages."
+  },
+  {
+    "name": "rules_engine.reload_key",
+    "type": "java.lang.String",
+    "description": "Key used to verify reload requests via the REST API."
+  }
+]}

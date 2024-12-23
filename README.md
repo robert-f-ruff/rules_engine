@@ -17,12 +17,6 @@ Install the following tools:
 - [Apache Maven v3.9.9](https://maven.apache.org/download.cgi)
 - Latest version of [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-### WildFly Configure v1.0.0
-The WildFly Configure utility is required to ensure that the backend engine container successfully starts.
-
-1. Download the utility's source code from the utility's [GitHub repository](https://github.com/robert-f-ruff/wildfly_configure).
-2. Follow the instructions in the [Development Setup](https://github.com/robert-f-ruff/wildfly_configure#development-setup) section in the repository's README.md file to build and distribute the utility.
-
 ## Gather Secrets
 During setup, the initialization script will walk you through populating the text files in the secrets directory. Below is the list of files and each file's purpose. Deciding what each secret should be now will ensure a smooth initialization.
 - `secrets/db_host.txt`: This stores the address of the database server; an appropriate default value is populated by the script.
@@ -40,8 +34,6 @@ During setup, the initialization script will walk you through populating the tex
 - `secrets/mail_host_port.txt`: This stores the port number on the email server that the Simple Mail Transport Protocol (SMTP) service listens on; an appropriate default value is populated by the script.
 - `secrets/mail_host.txt`: This stores the address to use in connecting to the email server; an appropriate default value is populated by the script.
 - `secrets/mail_server_password.txt`: This stores the password for the email account used in connecting to the email service.
-- `secrets/wildfly_user_name.txt`: This stores the user name for the WildFly server management user.
-- `secrets/wildfly_user_password.txt`: This stores the password for the WildFly server management user's password.
 
 ## Setup Environment
 A Docker Compose file (`docker-compose-supporting_services.yml`) is provided that will launch the supporting services:
@@ -72,10 +64,6 @@ A Docker Compose file (`docker-compose-supporting_services.yml`) is provided tha
    ./initialize_environment.sh
    ```
    
-3. Obtain and configure access to the Red Hat Quay Container Registry:
-   1. If you do not have a Red Hat account, sign up for a free account by clicking on the SIGN IN button on the [registry's homepage](https://quay.io/tutorial/).
-   2. The [tutorial](https://quay.io/tutorial/) contains instructions on adding the registry to Docker.
-
 ## Launch the Application Containers
 Before launching the system, both in full or in part, verify the contents of the `secrets/db_host.txt`, `secrets/engine_host.txt`, and `secrets/mail_host.txt` files are correct according to the following tables. 
 <table>

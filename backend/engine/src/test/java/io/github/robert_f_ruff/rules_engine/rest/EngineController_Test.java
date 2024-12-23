@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.jupiter.api.Test;
 
 import io.github.robert_f_ruff.rules_engine.Engine;
@@ -29,33 +27,10 @@ public class EngineController_Test {
     when(engine.getStatus()).thenReturn(Engine.Status.RUNNING).thenReturn(Engine.Status.IDLE);
     RuleRepository repository = mock();
     EngineController resource = new EngineController(engine, repository, "AAAAA");
-    EngineResponse expected = new EngineResponse(EngineController.Status.OK);
+    EngineResponse expected = new EngineResponse(EngineController.Status.FAILED);
     assertTrue(expected.equals(resource.reloadRules(new EngineRequest("AAAAA"))));
-  }
-
-  @Test
-  void test_Reload_Rules_InterruptedException() throws InterruptedException {
-    AtomicBoolean successfulResult = new AtomicBoolean();
-    Runnable toBeInterrupted = () -> {
-      Engine engine = mock();
-      when(engine.getStatus()).thenReturn(Engine.Status.RUNNING).thenReturn(Engine.Status.IDLE);
-      RuleRepository repository = mock();
-      EngineController resource = new EngineController(engine, repository, "AAAAA");
-      EngineResponse result = resource.reloadRules(new EngineRequest("AAAAA"));
-      if (result.equals(new EngineResponse(EngineController.Status.OK))) {
-        successfulResult.set(true);
-      }
-    };
-    Thread testThread = new Thread(toBeInterrupted);
-    testThread.start();
-    while (true) {
-      if (testThread.getState() == Thread.State.TIMED_WAITING) {
-        testThread.interrupt();
-        break;
-      }
-    }
-    testThread.join();
-    assertTrue(successfulResult.get());
+    expected = new EngineResponse(EngineController.Status.OK);
+    assertTrue(expected.equals(resource.reloadRules(new EngineRequest("AAAAA"))));
   }
 
   @Test

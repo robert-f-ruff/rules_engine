@@ -60,18 +60,17 @@ for secretfile in secrets/*.txt; do
   elif [ "$FILE_NAME" = "mail_server_password.txt" ]; then
     echo "This stores the password for the email account used in connecting to the email service."
     read -s -p "Email service user's password: " value
-  elif [ "$FILE_NAME" = "wildfly_user_name.txt" ]; then
-    echo "This stores the user name for the WildFly management user."
-    read -p "WildFly management user name: " value
-  elif [ "$FILE_NAME" = "wildfly_user_password.txt" ]; then
-    echo "This stores the password for the WildFly management user's password."
-    read -s -p "WildFly management user's password: " value
   fi
   echo -n $value > $secretfile
   echo " "
   echo "====+====+====+====+====+====+====+====+"
   echo " "
 done
+running_in_docker=no
+export running_in_docker
+mkdir backend/engine/config
+python3 generate_properties.py
+unset running_in_docker
 echo "Done"
 
 echo " "

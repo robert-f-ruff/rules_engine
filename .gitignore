@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .DS_Store
-.vscode/settings.json
+.vscode/*
 
 frontend/web_server/static/
-backend/engine/wildfly-configuration-*.jar
+backend/engine/config/*
