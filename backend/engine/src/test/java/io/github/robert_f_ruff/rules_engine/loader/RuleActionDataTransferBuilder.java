@@ -2,7 +2,7 @@ package io.github.robert_f_ruff.rules_engine.loader;
 
 public class RuleActionDataTransferBuilder {
   private Long ruleId;
-  private Integer actionSequenceNumber;
+  private Short actionSequenceNumber;
   private String actionName;
   private String actionFunction;
   private String parameterName;
@@ -17,7 +17,7 @@ public class RuleActionDataTransferBuilder {
     return this;
   }
 
-  public RuleActionDataTransferBuilder withActionSequenceNumber(Integer actionSequenceNumber) {
+  public RuleActionDataTransferBuilder withActionSequenceNumber(Short actionSequenceNumber) {
     this.actionSequenceNumber = actionSequenceNumber;
     return this;
   }

@@ -3,18 +3,19 @@ package io.github.robert_f_ruff.rules_engine.loader;
 import java.util.HashMap;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mail.javamail.JavaMailSender;
+
 import io.github.robert_f_ruff.rules_engine.actions.Action;
 import io.github.robert_f_ruff.rules_engine.actions.ActionFactory;
 import io.github.robert_f_ruff.rules_engine.actions.ActionFactoryException;
 import io.github.robert_f_ruff.rules_engine.actions.ParameterException;
-import jakarta.mail.Session;
 
 public class ActionBuilder {
   private String actionType;
   private HashMap<String, String> parameters;
   private ActionFactory actionFactory;
   @Mock
-  private Session session;
+  private JavaMailSender javaMailSender;
 
   public static ActionBuilder anAction() throws ActionFactoryException {
     return new ActionBuilder();
@@ -55,6 +56,6 @@ public class ActionBuilder {
     actionType = "SendEmail";
     parameters = new HashMap<>();
     MockitoAnnotations.openMocks(this);
-    actionFactory = new ActionFactory(session, "postmaster@spacely.com");
+    actionFactory = new ActionFactory(javaMailSender, "postmaster@spacely.com");
   }
 }

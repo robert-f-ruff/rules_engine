@@ -44,7 +44,7 @@ public class RulesEngineBackendIT {
   public static ComposeContainer environment
       = new ComposeContainer(new File("docker-compose-test.yml"))
           .withExposedService("backend_service_test-1", 8080)
-          .waitingFor("backend_service_test-1", Wait.forLogMessage(".*WFLYSRV0025.*", 1))
+          .waitingFor("backend_service_test-1", Wait.forLogMessage(".*Started RulesEngineApplication.*", 1))
           .withLogConsumer("backend_service_test-1", logOutput)
           .withLocalCompose(true);
   private String baseUrl;

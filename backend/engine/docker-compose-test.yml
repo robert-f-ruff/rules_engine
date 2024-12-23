@@ -15,6 +15,12 @@ services:
       - db_root_password
       - db_user_password
       - db_user_name
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -P 3306 -u root --password=$(cat /run/secrets/db_root_password) | grep 'mysqld is alive' || { echo mysqld is alive; exit 1; }"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
   email_test:
     image: greenmail/standalone:latest
     env_file:
@@ -25,23 +31,17 @@ services:
       context: ../../
       dockerfile: backend/engine/Dockerfile
     depends_on:
-      - db_test
-      - email_test
+      db_test:
+        condition: service_healthy
+      email_test:
+        condition: service_started
     ports:
       - 8080:8080
       - 9990:9990
-    secrets:
-      - db_host
-      - db_host_port
-      - db_user_password
-      - db_user_name
-      - engine_reload_key
-      - mail_from_address
-      - mail_host_port
-      - mail_host
-      - mail_server_password
-      - wildfly_user_name
-      - wildfly_user_password
+    volumes:
+      - type: bind
+        source: ./config/application-it.properties
+        target: /application/config/application.properties
 
 secrets:
   db_host:
@@ -54,17 +54,3 @@ secrets:
     file: ../../secrets/db_root_password.txt
   db_user_name:
     file: ../../secrets/db_user_name.txt
-  engine_reload_key:
-    file: ../../secrets/engine_reload_key.txt
-  mail_from_address:
-    file: ../../secrets/mail_from_address.txt
-  mail_host_port:
-    file: ../../secrets/mail_host_port.txt
-  mail_host:
-    file: ../../secrets/mail_host.txt
-  mail_server_password:
-    file: ../../secrets/mail_server_password.txt
-  wildfly_user_name:
-    file: ../../secrets/wildfly_user_name.txt
-  wildfly_user_password:
-    file: ../../secrets/wildfly_user_password.txt

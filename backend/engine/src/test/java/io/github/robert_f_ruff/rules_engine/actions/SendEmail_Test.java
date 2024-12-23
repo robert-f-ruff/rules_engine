@@ -16,6 +16,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
 
@@ -24,7 +26,6 @@ import jakarta.mail.Message;
 import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.NoSuchProviderException;
-import jakarta.mail.Session;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 
@@ -32,13 +33,14 @@ import jakarta.mail.internet.InternetAddress;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SendEmail_Test {
   GreenMail greenMail;
-  Session serverSession;
+  JavaMailSenderImpl javaMailSender;
   
   @BeforeAll
   void init() throws MessagingException, InterruptedException {
     greenMail = new GreenMail(ServerSetupTest.SMTP_IMAP);
     greenMail.start();
-    serverSession = greenMail.getSmtp().createSession();
+    javaMailSender = new JavaMailSenderImpl();
+    javaMailSender.setSession(greenMail.getSmtp().createSession());
   }
 
   @BeforeEach
@@ -58,7 +60,7 @@ public class SendEmail_Test {
 
   @Test
   void test_addParameter_AddressException() throws ActionException, AddressException {
-    SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail action = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     Exception exception = assertThrows(ParameterException.class,
         () -> action.addParameter("Send Email to", "george.jetson"));
     assertEquals("SendEmail - Invalid Send Email to address george.jetson: Missing final '@domain'",
@@ -70,7 +72,7 @@ public class SendEmail_Test {
       throws ActionException, ParameterException, MessagingException, IOException {
     greenMail.setUser("rosie.robot@spacely.com", "secret-pwd");
 
-    SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail action = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     action.addParameter("Send Email to", "george.jetson@spacely.com");
     action.addParameter("Send Email to", "rosie.robot@spacely.com");
     action.execute();
@@ -99,7 +101,7 @@ public class SendEmail_Test {
   
   @Test
   void test_Send_Email() throws ActionException, ParameterException, MessagingException, IOException {
-    SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail action = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     action.addParameter("Send Email to", "george.jetson@spacely.com");
     action.execute();
     Message[] receivedMessages = greenMail.getReceivedMessagesForDomain("spacely.com");
@@ -113,7 +115,7 @@ public class SendEmail_Test {
   void test_Send_Email_with_CC() throws ActionException, ParameterException, MessagingException, IOException {
     greenMail.setUser("rosie.robot@spacely.com", "secret-pwd");
 
-    SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail action = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     action.addParameter("Send Email to", "george.jetson@spacely.com");
     action.addParameter("Copy Email to", "rosie.robot@spacely.com");
     action.execute();
@@ -145,29 +147,29 @@ public class SendEmail_Test {
 
   @Test
   void test_SendEmail_Send_Exception() throws ActionException, MessagingException, ParameterException, IOException {
-    SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail action = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     Exception exception = assertThrows(ActionException.class, () -> action.execute());
-    assertEquals("SendEmail - Unable to send the message: No recipient addresses",
+    assertEquals("SendEmail - Unable to send the message: Failed messages: jakarta.mail.SendFailedException: No recipient addresses",
         exception.getMessage());
   }
 
   @Test
   void test_Invalid_Parameter_Name() throws ActionException, AddressException {
-    SendEmail action = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail action = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     Exception exception = assertThrows(ParameterException.class, () -> action.addParameter("Invalid", "null"));
     assertEquals("Invalid parameter name: Invalid", exception.getMessage());
   }
 
   @Test
   void test_Same_Object() throws ActionException, AddressException {
-    SendEmail object1 = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail object1 = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     SendEmail object2 = object1;
     assertTrue(object1.equals(object2));
   }
 
   @Test
   void test_Null_Object() throws ActionException, AddressException {
-    SendEmail object1 = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail object1 = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     SendEmail object2 = null;
     assertFalse(object1.equals(object2));
   }
@@ -175,7 +177,7 @@ public class SendEmail_Test {
   @SuppressWarnings("unlikely-arg-type")
   @Test
   void test_Different_Class() throws ActionException, AddressException {
-    SendEmail object1 = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail object1 = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     ActionStub object2 = new ActionStub();
     assertFalse(object1.equals(object2));
   }
@@ -183,9 +185,9 @@ public class SendEmail_Test {
   @Test
   void test_Equal_Objects() throws ActionException, ParameterException, AddressException {
     InternetAddress fromAddress = new InternetAddress("postmaster@spacely.com");
-    SendEmail object1 = new SendEmail(serverSession, fromAddress);
+    SendEmail object1 = new SendEmail(javaMailSender, fromAddress);
     object1.addParameter("Send Email to", "george.jetson@spacely.com");
-    SendEmail object2 = new SendEmail(serverSession, fromAddress);
+    SendEmail object2 = new SendEmail(javaMailSender, fromAddress);
     object2.addParameter("Send Email to", "george.jetson@spacely.com");
     assertTrue(object1.equals(object2));
     assertTrue(object1.hashCode() == object2.hashCode());
@@ -193,12 +195,12 @@ public class SendEmail_Test {
 
   @Test
   void test_Unequal_Objects() throws ActionException, ParameterException, AddressException {
-    SendEmail object1 = new SendEmail(serverSession, new InternetAddress("postmaster@sprockets.com"));
-    SendEmail object2 = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail object1 = new SendEmail(javaMailSender, new InternetAddress("postmaster@sprockets.com"));
+    SendEmail object2 = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     object2.addParameter("Copy Email to", "rosie.robot@spacely.com");
     assertFalse(object1.equals(object2));
     assertFalse(object1.hashCode() == object2.hashCode());
-    SendEmail object3 = new SendEmail(serverSession, new InternetAddress("postmaster@spacely.com"));
+    SendEmail object3 = new SendEmail(javaMailSender, new InternetAddress("postmaster@spacely.com"));
     assertFalse(object1.equals(object3));
     assertFalse(object1.hashCode() == object3.hashCode());
   }

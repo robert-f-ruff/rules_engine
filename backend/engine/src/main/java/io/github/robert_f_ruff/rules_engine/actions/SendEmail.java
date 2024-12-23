@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.lang.NonNull;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessagePreparator;
+
 import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -18,10 +20,10 @@ import jakarta.mail.internet.MimeMessage;
 /**
  * Defines the act of sending an email message.
  * @author Robert F. Ruff
- * @version 1.0
+ * @version 1.1
  */
 public class SendEmail implements Action {
-  private Session session;
+  private JavaMailSender mailSender;
   private InternetAddress fromAddress;
   private HashMap<Message.RecipientType, List<InternetAddress>> parameters;
   
@@ -61,52 +63,34 @@ public class SendEmail implements Action {
    */
   @Override
   public void execute() throws ActionException {
-    Message message = new MimeMessage(session);
-    try {
-      message.setFrom(fromAddress);
-    } catch (MessagingException e) {
-      throw new ActionException("SendEmail - Unable to set the from value " + fromAddress
-          + ": " + e.getMessage());
-    }
-    Iterator<Map.Entry<Message.RecipientType, List<InternetAddress>>> entries
-        = parameters.entrySet().iterator();
-    while (entries.hasNext()) {
-      Map.Entry<Message.RecipientType, List<InternetAddress>> entry = entries.next();
-      try {
-        for (InternetAddress address : entry.getValue()) {
-          message.addRecipient(entry.getKey(), address);
+    MimeMessagePreparator message = new MimeMessagePreparator() {
+      public void prepare(@NonNull MimeMessage mimeMessage) throws Exception {
+        mimeMessage.setFrom(fromAddress);
+        Iterator<Map.Entry<Message.RecipientType, List<InternetAddress>>> entries = parameters.entrySet().iterator();
+        while (entries.hasNext()) {
+          Map.Entry<Message.RecipientType, List<InternetAddress>> entry = entries.next();
+          InternetAddress[] addresses = entry.getValue().toArray(new InternetAddress[entry.getValue().size()]);
+          mimeMessage.setRecipients(entry.getKey(), addresses);
         }
-      } catch (MessagingException e) {
-        throw new ActionException(("SendEmail - Unable to add recipient: " + e.getMessage()));
+        mimeMessage.setSubject("Rules Engine");
+        mimeMessage.setContent("An applicable rule sent this message.", "text/plain");
       }
-    }
+    };
     try {
-      message.setSubject("Rules Engine");
-    } catch (MessagingException e) {
-      throw new ActionException("SendEmail - Unable to set the message subject: "
-          + e.getMessage());
-    }
-    try {
-      message.setContent("An applicable rule sent this message.", "text/plain");
-    } catch (MessagingException e) {
-      throw new ActionException("SendEmail - Unable to set the message content: "
-          + e.getMessage());
-    }
-    try {
-      Transport.send(message);
-    } catch (MessagingException e) {
+      this.mailSender.send(message);
+    } catch (MailException e) {
       throw new ActionException("SendEmail - Unable to send the message: " + e.getMessage());
     }
   }
 
   /**
    * New instance of SendEmail.
-   * @param session An instance of class Session that contains a connection to the mail server
+   * @param mailSender An instance of class JavaMailSender that contains a connection to the mail server
    * @param fromAddress The email address to use in the message's from header
    * @since 1.0
    */
-  public SendEmail(Session session, InternetAddress fromAddress) {
-    this.session = session;
+  public SendEmail(JavaMailSender mailSender, InternetAddress fromAddress) {
+    this.mailSender = mailSender;
     this.fromAddress = fromAddress;
     parameters = new HashMap<>();
   }

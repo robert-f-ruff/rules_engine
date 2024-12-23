@@ -1,26 +1,25 @@
 package io.github.robert_f_ruff.rules_engine.rest;
 
-import java.util.concurrent.TimeUnit;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import io.github.robert_f_ruff.rules_engine.Engine;
 import io.github.robert_f_ruff.rules_engine.loader.RuleRepository;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.validation.Valid;
 
 /**
  * Manage the engine via a REST interface.
+ * @author Robert F. Ruff
+ * @version 1.1
  */
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-@Path("engine")
-public class EngineResource {
+@RestController
+@RequestMapping("/rules_engine/engine")
+public class EngineController {
   /**
    * Identifies the possible statuses returned by this resource.
    * @since 1.0
@@ -43,9 +42,9 @@ public class EngineResource {
   /**
    * Returns the engine's current status.
    * @return Current state of the engine
+   * @since 1.0
    */
-  @GET
-  @Path("status")
+  @GetMapping("/status")
   public EngineResponse getStatus() {
     return new EngineResponse(engine.getStatus());
   }
@@ -54,17 +53,13 @@ public class EngineResource {
    * Reloads the rule set from the database.
    * @param request Details of the external request
    * @return Dummy status since reloadRules() does not return a status
+   * @since 1.0
    */
-  @PUT
-  @Path("reload")
-  public EngineResponse reloadRules(EngineRequest request) {
-    if (key.equals(request.getAccessCode())) {
-      while (engine.getStatus() == Engine.Status.RUNNING) {
-        try {
-          TimeUnit.SECONDS.sleep(2);
-        } catch (InterruptedException error) {
-          // Don't care
-        }
+  @PutMapping("/reload")
+  public EngineResponse reloadRules(@RequestBody @Valid EngineRequest request) {
+    if (key.equals(request.accessCode())) {
+      if (engine.getStatus() == Engine.Status.RUNNING) {
+        return new EngineResponse(Status.FAILED);
       }
       repository.reloadRules();
       return new EngineResponse(Status.OK);
@@ -80,9 +75,9 @@ public class EngineResource {
    * @param key Key used to validate reload rules request
    * @since 1.0
    */
-  @Inject
-  public EngineResource(Engine engine, RuleRepository repository,
-      @ConfigProperty(name = "rules_engine_Reload_Rules_Key") String key) {
+  @Autowired
+  public EngineController(Engine engine, RuleRepository repository,
+      @Value("${rules_engine.reload_key}") String key) {
     this.repository = repository;
     this.engine = engine;
     this.key = key;
@@ -92,7 +87,7 @@ public class EngineResource {
    * New instance of EngineResource.
    * @since 1.0
    */
-  public EngineResource() {
+  public EngineController() {
     this.repository = null;
     this.engine = null;
     this.key = "";

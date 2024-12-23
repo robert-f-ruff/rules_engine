@@ -35,7 +35,7 @@ public class EngineResponse {
    * @param status The status to store
    * @since 1.0
    */
-  public EngineResponse(EngineResource.Status status) {
+  public EngineResponse(EngineController.Status status) {
     this.status = status.name();
   }
 

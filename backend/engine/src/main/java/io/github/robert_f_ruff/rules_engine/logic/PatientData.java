@@ -4,15 +4,10 @@ import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Objects;
 
-import jakarta.json.bind.annotation.JsonbCreator;
-import jakarta.json.bind.annotation.JsonbProperty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-
 /**
  * Defines the data associated with a patient.
  * @author Robert F. Ruff
- * @version 1.0
+ * @version 1.1
  */
 public class PatientData {
   /**
@@ -30,10 +25,7 @@ public class PatientData {
     FEMALE
   }
 
-  @NotNull
   private Gender gender;
-  @NotNull
-  @Past
   private LocalDate birthDate;
 
   /**
@@ -60,9 +52,7 @@ public class PatientData {
    * @param birthDate The date the patient was born, formatted as {@code YYYY-MM-DD}
    * @since 1.0
    */
-  @JsonbCreator
-  public PatientData(@JsonbProperty("gender") Gender gender,
-      @JsonbProperty("birthDate") String birthDate) {
+  public PatientData(Gender gender, String birthDate) {
     this.gender = gender;
     this.birthDate = LocalDate.parse(CharBuffer.wrap(birthDate.toCharArray()));
   }

@@ -19,7 +19,7 @@ public class EngineResponse_Test {
 
   @Test
   void test_Repository_Reload() {
-    EngineResponse engineStatus = new EngineResponse(EngineResource.Status.OK);
+    EngineResponse engineStatus = new EngineResponse(EngineController.Status.OK);
     assertEquals("OK", engineStatus.getStatus());
   }
 

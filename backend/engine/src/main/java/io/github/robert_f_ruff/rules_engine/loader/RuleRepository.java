@@ -5,8 +5,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.logging.Logger;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import jakarta.persistence.Tuple;
 
 import io.github.robert_f_ruff.rules_engine.actions.Action;
 import io.github.robert_f_ruff.rules_engine.actions.ActionFactory;
@@ -15,21 +22,54 @@ import io.github.robert_f_ruff.rules_engine.actions.ParameterException;
 import io.github.robert_f_ruff.rules_engine.logic.Logic;
 import io.github.robert_f_ruff.rules_engine.logic.LogicFactory;
 import io.github.robert_f_ruff.rules_engine.logic.LogicFactoryException;
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 /**
  * Builds and stores the rule set (including criteria and actions) used by the engine.
  * @author Robert F. Ruff
- * @version 1.0
+ * @version 1.1
  */
-@ApplicationScoped
+@Repository
 public class RuleRepository {
-	@PersistenceContext(unitName = "rules_data")
-	private EntityManager em;
+	/**
+	 * Defines the query that is used to generate RuleCriterionDataTransfer instances.
+	 * @since 1.1
+	 */
+	public static final String RULE_CRITERIA_QUERY = """
+		SELECT rule.id AS rule_id, rule.name AS rule_name,
+				criterion.name AS criterion, criterion.logic
+		FROM (rules_rule AS rule LEFT JOIN rules_rule_criteria
+						ON rule.id = rules_rule_criteria.rule_id)
+				LEFT JOIN rules_criterion AS criterion
+						ON rules_rule_criteria.criterion_id = criterion.name;
+	""";
+	/**
+	 * Defines the query that is used to generate RuleActionDataTransfer instances.
+	 * @since 1.1
+	 */
+	public static final String RULE_ACTIONS_QUERY = """
+		SELECT actionValues.rule_id, actionValues.action_number,
+			actionValues.action_id, actionDefinition.function,
+			actionValues.parameter_id, actionValues.parameter_value
+		FROM (
+			SELECT ruleAction.rule_id, ruleAction.action_number,
+				ruleAction.action_id, ruleParameter.parameter_id,
+				ruleParameter.parameter_value
+			FROM rules_ruleactions AS ruleAction
+				LEFT JOIN rules_ruleactionparameters AS ruleParameter
+					ON ruleAction.id = ruleParameter.rule_action_id
+			) AS actionValues
+			LEFT JOIN (
+				SELECT action.name AS action_id, action.function,
+					parameter.parameter_id, parameter.parameter_number
+				FROM rules_action AS action
+					LEFT JOIN rules_actionparameters AS parameter
+						ON action.name = parameter.action_id
+			) AS actionDefinition
+			ON (actionValues.action_id = actionDefinition.action_id
+				AND actionValues.parameter_id = actionDefinition.parameter_id)
+		ORDER BY actionValues.rule_id, actionValues.action_number, actionDefinition.parameter_number;
+	""";
+	private Session session;
 	private HashMap<Long, Rule> rules;
 	private ArrayList<Criterion> criteria;
 	private ActionFactory actionFactory;
@@ -66,24 +106,30 @@ public class RuleRepository {
 		loadRules();
 	}
 
-	@PostConstruct
 	private void loadRules() {
-		logger.fine("Retrieving rule records from data source");
+		logger.info("Retrieving rule records from data source");
 		List<RuleCriterionDataTransfer> ruleCriteriaRecords = 
-				em.createNamedQuery("RuleCriteria", RuleCriterionDataTransfer.class).getResultList();
+				session.createNativeQuery(RULE_CRITERIA_QUERY, Tuple.class)
+				.setTupleTransformer((tuple, alias) -> {
+					return new RuleCriterionDataTransfer((Long)tuple[0], (String)tuple[1], (String)tuple[2], (String)tuple[3]);
+				})
+				.getResultList();
 		List<RuleActionDataTransfer> ruleActionRecords =
-				em.createNamedQuery("RuleActions", RuleActionDataTransfer.class).getResultList();
-		
-		logger.fine("Processing returned rule criteria records:");
+				session.createNativeQuery(RULE_ACTIONS_QUERY, Tuple.class)
+				.setTupleTransformer((tuple, alias) -> {
+					return new RuleActionDataTransfer((Long)tuple[0], (Short)tuple[1], (String)tuple[2], (String)tuple[3], (String)tuple[4], (String)tuple[5]);
+				})
+				.getResultList();
+		logger.info("Processing returned rule criteria records:");
 		HashMap<Criterion, List<Rule>> criterionMap = new HashMap<>();
 		ruleCriteriaRecords.stream().forEach(record -> {
-			logger.fine("  Processing record " + record);
+			logger.info("  Processing record " + record);
 			Rule rule;
 			if (rules.containsKey(record.getRuleId())) {
-				logger.fine("  Retrieving existing rule");
+				logger.info("  Retrieving existing rule");
 				rule = rules.get(record.getRuleId());
 			} else {
-				logger.fine("  Creating new rule");
+				logger.info("  Creating new rule");
 				rule = new Rule(record.getRuleId(), record.getRuleName());
 				rules.put(rule.getId(), rule);
 			}
@@ -92,26 +138,26 @@ public class RuleRepository {
 				Criterion criterion = new Criterion(record.getCriterionName(), logicClass,
 						record.getCriterionLogicMethodName(), record.getCriterionLogicCheckValue());
 				if (criteria.contains(criterion)) {
-					logger.fine("  Retrieving criterion from collection");
+					logger.info("  Retrieving criterion from collection");
 					criterion = criteria.get(criteria.indexOf(criterion));
 				}	else {
-					logger.fine("  Adding criterion to collection");
+					logger.info("  Adding criterion to collection");
 					criteria.add(criterion);
 				}
 				rule.addCriterion(criterion);
 				if (! criterionMap.containsKey(criterion)) criterionMap.put(criterion, new ArrayList<>());
 				criterionMap.get(criterion).add(rule);
 			} catch (LogicFactoryException error) {
-				logger.severe("Could not create criterion " + record.getCriterionName() + ": "
+				logger.error("Could not create criterion " + record.getCriterionName() + ": "
 						+ error.getMessage());
 			}
-			logger.fine("  -------");
+			logger.info("  -------");
 		});
-		logger.fine("Processing returned rule action records:");
+		logger.info("Processing returned rule action records:");
 		HashMap<RuleIdActionSequence, Action> actions = new HashMap<>();
 		ArrayList<Long> invalidRules = new ArrayList<>();
 		ruleActionRecords.stream().forEach((record) -> {
-			logger.fine("  Processing record " + record);
+			logger.info("  Processing record " + record);
 			Rule rule = rules.get(record.getRuleId());
 			try {
 				Action action;
@@ -126,28 +172,28 @@ public class RuleRepository {
 				action.addParameter(record.getParameterName(), record.getParameterValue());
 				rule.addAction(record.getActionSequenceNumber(), action);
 			} catch (ActionFactoryException error) {
-				logger.severe("Could not create action #" + record.getActionSequenceNumber() + " "
+				logger.error("Could not create action #" + record.getActionSequenceNumber() + " "
 						+ record.getActionName() + ": " + error.getMessage());
 				invalidRules.add(record.getRuleId());
 			} catch (ParameterException error) {
-				logger.severe("Could not add parameter " + record.getParameterName() + " to action #"
+				logger.error("Could not add parameter " + record.getParameterName() + " to action #"
 						+ record.getActionSequenceNumber() + " " + record.getActionName() + ": "
 						+ error.getMessage());
 				invalidRules.add(record.getRuleId());
 			}
-			logger.fine("  -------");
+			logger.info("  -------");
 		});
-		logger.fine("Validating rule set");
+		logger.info("Validating rule set");
 		Iterator<Map.Entry<Long, Rule>> entries = rules.entrySet().iterator();
 		while (entries.hasNext()) {
 			Map.Entry<Long, Rule> entry = entries.next();
 			if (entry.getValue().getCriteria().size() == 0) {
-				logger.warning("  Removing rule as it has no criteria: " + entry.getValue());
+				logger.info("  Removing rule as it has no criteria: " + entry.getValue());
 				entries.remove();
 				continue;
 			}
 			if (entry.getValue().getActions().size() == 0) {
-				logger.warning("  Removing rule as it has no actions: " + entry.getValue());
+				logger.info("  Removing rule as it has no actions: " + entry.getValue());
 				for (Criterion criterion : entry.getValue().getCriteria()) {
 					criterionMap.get(criterion).remove(entry.getValue());
 				}
@@ -155,7 +201,7 @@ public class RuleRepository {
 				continue;
 			}
 			if (invalidRules.contains(entry.getValue().getId())) {
-				logger.warning("  Removing rule as it is incomplete: " + entry.getValue());
+				logger.info("  Removing rule as it is incomplete: " + entry.getValue());
 				for (Criterion criterion : entry.getValue().getCriteria()) {
 					criterionMap.get(criterion).remove(entry.getValue());
 				}
@@ -163,12 +209,12 @@ public class RuleRepository {
 				continue;
 			}
 		}
-		logger.fine("Validating set of criteria");
+		logger.info("Validating set of criteria");
 		Iterator<Map.Entry<Criterion, List<Rule>>> criterion = criterionMap.entrySet().iterator();
 		while (criterion.hasNext()) {
 			Map.Entry<Criterion, List<Rule>> entry = criterion.next();
 			if (entry.getValue().size() == 0) {
-				logger.warning("  Removing criterion as there are no rules that reference it: " + entry.getKey());
+				logger.info("  Removing criterion as there are no rules that reference it: " + entry.getKey());
 				criteria.remove(entry.getKey());
 				criterion.remove();
 			}
@@ -176,30 +222,19 @@ public class RuleRepository {
 	}
 
 	/**
-	 * New test-friendly instance of RuleRepository; executes {@code RuleRepository.loadRules()} to
+	 * New instance of RuleRepository; executes {@code RuleRepository.loadRules()} to
 	 * build the rule set.
-	 * @param entityManager Instance of EntityManager that will return records from the database
+	 * @param sessionFactory Hibernate session to execute queries with
 	 * @param actionFactory Instance of ActionFactory that will return object instances that
 	 * 		 implement the Action interface
-   * @since 1.0
+   * @since 1.1
 	 */
-	public RuleRepository(EntityManager entityManager, ActionFactory actionFactory) {
-		this(actionFactory);
-		this.em = entityManager;
-		loadRules();
-	}
-	
-	/**
-	 * New prodution-friendly instance of RuleRepository; container should automatically execute
-	 * {@code RuleRepository.loadRules()} to build the rule set.
-	 * @param actionFactory Instance of ActionFactory that will return object instances that
-	 * 		 implement the Action interface
-   * @since 1.0
-	 */
-	@Inject
-	public RuleRepository(ActionFactory actionFactory) {
+	@Autowired
+	public RuleRepository(SessionFactory sessionFactory, ActionFactory actionFactory) {
 		this();
+		this.session = sessionFactory.openSession();;
 		this.actionFactory = actionFactory;
+		loadRules();
 	}
 
 	/**
@@ -207,9 +242,10 @@ public class RuleRepository {
 	 * @since 1.0
 	 */
 	public RuleRepository() {
+		this.session = null;
 		this.actionFactory = null;
 		this.rules = new HashMap<>();
 		this.criteria = new ArrayList<>();
-		this.logger = Logger.getLogger(this.getClass().getName());
+		this.logger = LoggerFactory.getLogger(this.getClass().getName());
 	}
 }

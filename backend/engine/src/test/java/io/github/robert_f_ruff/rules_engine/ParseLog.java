@@ -112,7 +112,7 @@ public class ParseLog {
                 engineEntries.add(line.split("\\)\\s")[1]);
                 break;
               case "RuleRepository":
-                repositoryEntries.add(line.split("\\)\\s+")[1]);
+                repositoryEntries.add(line.split("\\s:\\s+")[1]);
                 break;
             }
           }
@@ -129,8 +129,8 @@ public class ParseLog {
     this.engineEntries = new ArrayList<>();
     this.alarmingEntries = new ArrayList<>();
     this.resumeLine = -1;
-    this.logLevel = Pattern.compile("\\A.+?\\s{1}([A-Z]+)\\s{1}");
-    this.className = Pattern.compile("\\s\\[io\\.github\\.robert_f_ruff\\.rules_engine"
-        + "(?:\\.loader){0,1}\\.([A-Za-z]+)\\]\\s{1}");
+    this.logLevel = Pattern.compile("\\A\\S+\\s{1,}([A-Z]+)\\s{1}");
+    this.className = Pattern.compile("\\s{1}\\[Rules Engine\\]\\s.+"
+        + "\\.(?:loader|rules_engine){1}\\.([A-Z]a-z]+)\\s{1}");
   }
 }

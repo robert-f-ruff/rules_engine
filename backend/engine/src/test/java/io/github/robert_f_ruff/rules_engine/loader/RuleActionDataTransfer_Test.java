@@ -50,7 +50,7 @@ public class RuleActionDataTransfer_Test {
     assertFalse(object1.equals(object2));
     assertFalse(object1.hashCode() == object2.hashCode());
     RuleActionDataTransfer object3 = aRuleActionRecord()
-      .withActionSequenceNumber(2)
+      .withActionSequenceNumber((short) 2)
       .withActionName("Send Email")
       .withActionFunction("SendEmail")
       .withParameterName("Send Email to")

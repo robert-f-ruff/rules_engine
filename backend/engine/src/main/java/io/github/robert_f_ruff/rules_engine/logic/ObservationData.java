@@ -3,19 +3,13 @@ package io.github.robert_f_ruff.rules_engine.logic;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-import jakarta.json.bind.annotation.JsonbCreator;
-import jakarta.json.bind.annotation.JsonbProperty;
-import jakarta.validation.constraints.Min;
-
 /**
  * Defines the data associated with an observation of a patient.
  * @author Robert F. Ruff
- * @version 1.0
+ * @version 1.1
  */
 public class ObservationData {
-  @Min(value =  0, message = "The value must be positive.")
   private BigDecimal weight;
-  @Min(value = 0, message = "The value must be positive.")
   private BigDecimal glucose;
 
   /**
@@ -42,9 +36,7 @@ public class ObservationData {
    * @param glucose The amount of glucose in the patient's blood (mg/dL)
    * @since 1.0
    */
-  @JsonbCreator()
-  public ObservationData(@JsonbProperty("weight") BigDecimal weight,
-      @JsonbProperty("glucose") BigDecimal glucose) {
+  public ObservationData(BigDecimal weight, BigDecimal glucose) {
     this.weight = weight;
     this.glucose = glucose;
   }

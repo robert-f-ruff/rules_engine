@@ -1,26 +1,28 @@
 # syntax=docker/dockerfile:1
 
-FROM ubuntu:latest AS deps
+# Perform the extraction in a separate builder container
+FROM bellsoft/liberica-openjre-debian:21-cds AS builder
+WORKDIR /builder
+# This points to the built jar file in the target folder
+# Adjust this to 'build/libs/*.jar' if you're using Gradle
+ARG JAR_FILE=backend/engine/target/*.jar
+# Copy the jar file to the working directory and rename it to application.jar
+COPY ${JAR_FILE} application.jar
+# Extract the jar file using an efficient layout
+RUN java -Djarmode=tools -jar application.jar extract --layers --destination extracted
 
-WORKDIR /build
-
-ADD https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-9.1.0.zip .
-
-RUN apt-get update -y \
-    && apt-get install -y zip
-
-RUN unzip *
-
-FROM quay.io/wildfly/wildfly-runtime:latest-jdk21 AS final
-COPY --chown=jboss:root backend/engine/target/server/ $JBOSS_HOME
-RUN chmod -R ug+rwX $JBOSS_HOME
-
-WORKDIR /config
-COPY --chown=jboss:root backend/engine/wildfly_config.yml.tmpl .
-COPY --chown=jboss:root backend/engine/wildfly-configuration-1.0.1.jar .
-COPY --chown=jboss:root --from=deps /build/mysql-connector-j-9.1.0/mysql-connector-j-9.1.0.jar /config/
-COPY --chown=jboss:root backend/engine/initialize.sh .
-
-ENTRYPOINT [ "/config/initialize.sh" ]
-
-CMD ["sh", "-c", "export SERVER_ARGS=\"-y=/config/wildfly_config.yml\" && ${JBOSS_CONTAINER_WILDFLY_RUN_MODULE}/run"]
+# This is the runtime container
+FROM bellsoft/liberica-openjre-debian:21-cds
+WORKDIR /application
+# Copy the extracted jar contents from the builder container into the working directory in the runtime container
+# Every copy step creates a new docker layer
+# This allows docker to only pull the changes it really needs
+COPY --from=builder /builder/extracted/dependencies/ ./
+COPY --from=builder /builder/extracted/spring-boot-loader/ ./
+COPY --from=builder /builder/extracted/snapshot-dependencies/ ./
+COPY --from=builder /builder/extracted/application/ ./
+VOLUME ["/application/config"]
+# Start the application jar - this is not the uber jar used by the builder
+# This jar only contains application code and references to the extracted jar files
+# This layout is efficient to start up and CDS friendly
+ENTRYPOINT ["java", "-jar", "application.jar"]
