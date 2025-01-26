@@ -1,9 +1,9 @@
-Django==5.1.4
+django==5.1.5
 gunicorn==23.0.0
-mysqlclient==2.2.6
+mysqlclient==2.2.7
 python-dotenv==1.0.1
-Requests==2.32.3
+requests==2.32.3
 requests_mock==1.12.1
-selenium==4.27.1
-testcontainers[mysql]==4.9.0
-coverage==7.6.9
+selenium==4.28.1
+testcontainers[mysql]==4.9.1
+coverage==7.6.10

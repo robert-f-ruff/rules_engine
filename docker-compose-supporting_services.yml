@@ -2,7 +2,7 @@ name: rules_engine_support_services
 
 services:
   db:
-    image: mysql:8.4.2
+    image: mysql:9.2.0
     container_name: database_service
     volumes:
       - database_service_data:/var/lib/mysql

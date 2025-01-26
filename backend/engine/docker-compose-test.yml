@@ -1,6 +1,6 @@
 services:
   db_test:
-    image: mysql:8.4.2
+    image: mysql:9.2.0
     volumes:
       - type: bind
         source: ./rules_dump.sql
